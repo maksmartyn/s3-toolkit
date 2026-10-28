@@ -29,6 +29,7 @@ const props = defineProps<{
     users: Paginated<User>;
     filters: { search: string | null; status: UserStatus | null };
     statuses: SelectOption<UserStatus>[];
+    can: { create: boolean };
 }>();
 
 const locale = usePage().props.locale;
@@ -65,7 +66,7 @@ watch(status, applyFilters);
                 :title="$t('Users')"
                 :description="$t('Accounts that can sign in to the service')"
             />
-            <Button as-child>
+            <Button v-if="can.create" as-child>
                 <Link :href="create()">
                     <Plus />
                     {{ $t('Add user') }}

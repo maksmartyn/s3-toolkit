@@ -9,10 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import TemporaryPasswordDialog from '@/components/users/TemporaryPasswordDialog.vue';
+import UserSystemPermissions from '@/components/users/UserSystemPermissions.vue';
 import UserStatusBadge from '@/components/users/UserStatusBadge.vue';
 import { formatDateTime } from '@/lib/format';
 import { index } from '@/routes/users';
-import type { User } from '@/types';
+import type { PermissionOption, PermissionTemplate, User } from '@/types';
 
 defineOptions({
     layout: {
@@ -22,7 +23,10 @@ defineOptions({
 
 const props = defineProps<{
     user: User;
+    permissionOptions: PermissionOption[];
+    permissionTemplates: PermissionTemplate[];
     can: {
+        updatePermissions: boolean;
         update: boolean;
         block: boolean;
         unblock: boolean;
@@ -111,6 +115,14 @@ const destroy = () => visit(UserController.destroy(props.user.id));
                 {{ $t('Save') }}
             </Button>
         </Form>
+
+        <UserSystemPermissions
+            v-if="user.status !== 'deleted'"
+            :user="user"
+            :options="permissionOptions"
+            :templates="permissionTemplates"
+            :can-update="can.updatePermissions"
+        />
 
         <div
             v-if="

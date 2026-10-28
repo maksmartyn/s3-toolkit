@@ -18,7 +18,7 @@ x-php: &php
 services:
     app:
         <<: *php
-        command: php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=8000 --workers=2 --task-workers=0 --max-requests=500
+        command: php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=8000 --workers=2 --task-workers=0 --max-requests=500 --watch
         ports:
             - '${APP_PORT:-8090}:8000'
         mem_limit: 384m

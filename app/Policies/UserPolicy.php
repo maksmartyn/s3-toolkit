@@ -6,6 +6,7 @@ namespace App\Policies;
 
 use App\Domain\Enum\Permission\SystemPermission;
 use App\Models\User;
+use App\Policies\Concerns\ChecksSystemPermissions;
 
 /**
  * Кто и с кем может работать в разделе пользователей.
@@ -14,14 +15,19 @@ use App\Models\User;
  */
 final class UserPolicy
 {
+    use ChecksSystemPermissions;
+
+    /**
+     * Список пользователей нужен и тем, кто только выдаёт права: иначе некому их выдать.
+     */
     public function viewAny(User $actor): bool
     {
-        return $this->canManageUsers($actor);
-    }
-
-    public function create(User $actor): bool
-    {
-        return $this->canManageUsers($actor);
+        return $this->hasSystemPermission(
+            $actor,
+            SystemPermission::ManageUsers,
+            SystemPermission::GrantSystemPermissions,
+            SystemPermission::GrantStoragePermissions,
+        );
     }
 
     /**
@@ -29,7 +35,12 @@ final class UserPolicy
      */
     public function view(User $actor, User $target): bool
     {
-        return $this->canManage($actor, $target);
+        return $this->viewAny($actor);
+    }
+
+    public function create(User $actor): bool
+    {
+        return $this->canManageUsers($actor);
     }
 
     public function update(User $actor, User $target): bool
@@ -62,9 +73,20 @@ final class UserPolicy
         return $this->canManageOther($actor, $target) && ! $target->trashed();
     }
 
+    /**
+     * Базовые права: любые, но не себе. Суперадмину права не выдаются — у него есть все.
+     */
+    public function updatePermissions(User $actor, User $target): bool
+    {
+        return $this->hasSystemPermission($actor, SystemPermission::GrantSystemPermissions)
+            && $actor->id !== $target->id
+            && ! $target->is_superadmin
+            && ! $target->trashed();
+    }
+
     private function canManageUsers(User $actor): bool
     {
-        return $actor->is_superadmin || $actor->permissions->has(SystemPermission::ManageUsers);
+        return $this->hasSystemPermission($actor, SystemPermission::ManageUsers);
     }
 
     /**

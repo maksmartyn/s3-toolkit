@@ -19,6 +19,7 @@ export type Auth = {
     user: User;
     can: {
         viewUsers: boolean;
+        viewPermissionTemplates: boolean;
     };
 };
 

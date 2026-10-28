@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\User;
 
 use App\Domain\DTO\User\TemporaryPasswordData;
+use App\Domain\Enum\Permission\PermissionScope;
 use App\Domain\Enum\User\UserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\UserBlockRequest;
@@ -18,6 +19,8 @@ use App\Http\Requests\User\UserStoreRequest;
 use App\Http\Requests\User\UserUnblockRequest;
 use App\Http\Requests\User\UserUpdateRequest;
 use App\Models\User;
+use App\Services\Permission\PermissionCatalog;
+use App\Services\Permission\PermissionTemplateService;
 use App\Services\User\UserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rules\Password;
@@ -26,7 +29,11 @@ use Inertia\Response;
 
 final class UserController extends Controller
 {
-    public function __construct(private readonly UserService $users) {}
+    public function __construct(
+        private readonly UserService $users,
+        private readonly PermissionCatalog $catalog,
+        private readonly PermissionTemplateService $templates,
+    ) {}
 
     public function index(UserIndexRequest $request): Response
     {
@@ -39,6 +46,7 @@ final class UserController extends Controller
                 fn (UserStatus $status) => ['value' => $status->value, 'label' => $status->label()],
                 UserStatus::cases(),
             ),
+            'can' => ['create' => $request->authUser()->can('create', User::class)],
         ]);
     }
 
@@ -62,9 +70,14 @@ final class UserController extends Controller
     {
         $actor = $request->authUser();
 
+        $canUpdatePermissions = $actor->can('updatePermissions', $user);
+
         return Inertia::render('users/Edit', [
             'user' => $this->users->get($user->id),
+            'permissionOptions' => $this->catalog->options(PermissionScope::System),
+            'permissionTemplates' => $canUpdatePermissions ? $this->templates->list(PermissionScope::System) : [],
             'can' => [
+                'updatePermissions' => $canUpdatePermissions,
                 'update' => $actor->can('update', $user),
                 'block' => $actor->can('block', $user),
                 'unblock' => $actor->can('unblock', $user),

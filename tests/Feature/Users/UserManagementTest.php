@@ -33,7 +33,13 @@ describe('access', function () {
 
         $this->actingAs(userWith(SystemPermission::ManageUsers));
 
-        $this->get(route('users.edit', $admin))->assertForbidden();
+        $this->get(route('users.edit', $admin))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('can.update', false)
+                ->where('can.block', false)
+                ->where('can.delete', false)
+                ->where('can.resetPassword', false));
         $this->put(route('users.update', $admin), ['name' => 'X', 'email' => $admin->email])->assertForbidden();
         $this->post(route('users.block', $admin))->assertForbidden();
         $this->delete(route('users.destroy', $admin))->assertForbidden();

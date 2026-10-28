@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\PermissionTemplate;
 use App\Models\User;
 use App\Services\User\UserMapper;
 use Illuminate\Http\Request;
@@ -36,6 +37,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $user instanceof User ? $this->users->toData($user) : null,
                 'can' => [
                     'viewUsers' => $user instanceof User && $user->can('viewAny', User::class),
+                    'viewPermissionTemplates' => $user instanceof User && $user->can('viewAny', PermissionTemplate::class),
                 ],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

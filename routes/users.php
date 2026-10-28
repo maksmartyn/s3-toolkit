@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\User\UserController;
+use App\Http\Controllers\User\UserPermissionController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->prefix('users')->name('users.')->controller(UserController::class)->group(function () {
@@ -16,3 +17,6 @@ Route::middleware('auth')->prefix('users')->name('users.')->controller(UserContr
     Route::post('{user}/restore', 'restore')->withTrashed()->name('restore');
     Route::post('{user}/reset-password', 'resetPassword')->name('reset-password');
 });
+
+Route::middleware('auth')->put('users/{user}/permissions', [UserPermissionController::class, 'update'])
+    ->name('users.permissions.update');

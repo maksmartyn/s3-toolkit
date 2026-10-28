@@ -191,6 +191,7 @@ return [
         'public/**/*.php',
         'resources/**/*.php',
         'routes',
+        'lang',
         'composer.lock',
         '.env',
     ],

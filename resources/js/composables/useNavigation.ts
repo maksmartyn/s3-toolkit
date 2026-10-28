@@ -1,8 +1,9 @@
 import { usePage } from '@inertiajs/vue3';
-import { LayoutGrid, Users } from '@lucide/vue';
+import { KeyRound, LayoutGrid, Users } from '@lucide/vue';
 import { computed } from 'vue';
 import type { ComputedRef } from 'vue';
 import { dashboard } from '@/routes';
+import { index as permissionTemplatesIndex } from '@/routes/permission-templates';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
 
@@ -20,6 +21,14 @@ export function useNavigation(): { mainNavItems: ComputedRef<NavItem[]> } {
 
         if (can.viewUsers) {
             items.push({ title: 'Users', href: usersIndex(), icon: Users });
+        }
+
+        if (can.viewPermissionTemplates) {
+            items.push({
+                title: 'Permission templates',
+                href: permissionTemplatesIndex(),
+                icon: KeyRound,
+            });
         }
 
         return items;
