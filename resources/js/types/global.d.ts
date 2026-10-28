@@ -1,5 +1,6 @@
 import type { Directive } from 'vue';
-import type { Auth } from '@/types/auth';
+import type { Auth, TemporaryPassword } from '@/types/auth';
+import type { FlashToast } from '@/types/ui';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -16,8 +17,13 @@ declare module 'vite/client' {
 
 declare module '@inertiajs/core' {
     export interface InertiaConfig {
+        flashDataType: {
+            toast?: FlashToast;
+            temporaryPassword?: TemporaryPassword;
+        };
         sharedPageProps: {
             name: string;
+            locale: string;
             auth: Auth;
             sidebarOpen: boolean;
             [key: string]: unknown;

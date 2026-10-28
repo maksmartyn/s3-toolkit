@@ -37,6 +37,17 @@ services:
         mem_limit: 512m
         profiles: [frontend]
 
+    # Разовые команды: тесты, статический анализ, проверки фронтенда
+    # docker compose run --rm tools vendor/bin/pest
+    tools:
+        <<: *php
+        command: 'true'
+        environment:
+            NODE_OPTIONS: --max-old-space-size=1024
+        restart: 'no'
+        mem_limit: 1536m
+        profiles: [tools]
+
     mariadb:
         image: mariadb:11.8
         command:

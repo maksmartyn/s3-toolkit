@@ -5,13 +5,12 @@ namespace App\Concerns;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Unique;
 
 trait ProfileValidationRules
 {
     /**
-     * Get the validation rules used to validate user profiles.
-     *
-     * @return array<string, array<int, ValidationRule|array<mixed>|string>>
+     * @return array<string, array<int, ValidationRule|Unique|array<mixed>|string>>
      */
     protected function profileRules(?int $userId = null): array
     {
@@ -22,8 +21,6 @@ trait ProfileValidationRules
     }
 
     /**
-     * Get the validation rules used to validate user names.
-     *
      * @return array<int, ValidationRule|array<mixed>|string>
      */
     protected function nameRules(): array
@@ -32,20 +29,20 @@ trait ProfileValidationRules
     }
 
     /**
-     * Get the validation rules used to validate user emails.
+     * Email уникален среди неудалённых пользователей.
      *
-     * @return array<int, ValidationRule|array<mixed>|string>
+     * @return array<int, ValidationRule|Unique|array<mixed>|string>
      */
     protected function emailRules(?int $userId = null): array
     {
+        $unique = Rule::unique(User::class, 'email')->withoutTrashed();
+
         return [
             'required',
             'string',
             'email',
             'max:255',
-            $userId === null
-                ? Rule::unique(User::class)
-                : Rule::unique(User::class)->ignore($userId),
+            $userId === null ? $unique : $unique->ignore($userId),
         ];
     }
 }

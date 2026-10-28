@@ -5,9 +5,6 @@ use App\Models\User;
 use App\Repositories\Abstracts\BaseRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 final class BaseRepositoryTestUser extends User
 {

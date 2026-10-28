@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Repositories\Contracts;
 
 use App\Domain\DTO\Abstracts\DTO;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * @template TModel of Model

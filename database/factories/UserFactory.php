@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Domain\Enum\Permission\SystemPermission;
+use App\Domain\ValueObject\Permission\PermissionMask;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -12,14 +14,9 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
     protected static ?string $password;
 
     /**
-     * Define the model's default state.
-     *
      * @return array<string, mixed>
      */
     public function definition(): array
@@ -27,19 +24,34 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
+            'password_change_required' => false,
+            'is_superadmin' => false,
+            'is_active' => true,
+            'permissions' => 0,
             'remember_token' => Str::random(10),
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
+    public function superadmin(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+        return $this->state(fn () => ['is_superadmin' => true]);
+    }
+
+    public function blocked(): static
+    {
+        return $this->state(fn () => ['is_active' => false]);
+    }
+
+    public function mustChangePassword(): static
+    {
+        return $this->state(fn () => ['password_change_required' => true]);
+    }
+
+    public function withPermissions(SystemPermission ...$permissions): static
+    {
+        return $this->state(fn () => [
+            'permissions' => PermissionMask::of(SystemPermission::class, $permissions),
         ]);
     }
 }

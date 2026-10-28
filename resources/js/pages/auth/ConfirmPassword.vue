@@ -17,7 +17,7 @@ defineOptions({
 </script>
 
 <template>
-    <Head title="Confirm password" />
+    <Head :title="$t('Confirm password')" />
 
     <Form
         v-bind="store.form()"
@@ -26,7 +26,7 @@ defineOptions({
     >
         <div class="space-y-6">
             <div class="grid gap-2">
-                <Label htmlFor="password">Password</Label>
+                <Label html-for="password">{{ $t('Password') }}</Label>
                 <PasswordInput
                     id="password"
                     name="password"
@@ -46,7 +46,7 @@ defineOptions({
                     data-test="confirm-password-button"
                 >
                     <Spinner v-if="processing" />
-                    Confirm password
+                    {{ $t('Confirm password') }}
                 </Button>
             </div>
         </div>

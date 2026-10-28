@@ -6,10 +6,10 @@ namespace App\Repositories\Abstracts;
 
 use App\Domain\DTO\Abstracts\DTO;
 use App\Repositories\Contracts\RepositoryInterface;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Базовые CRUD-операции. Сложные выборки описываются отдельными методами наследника через query().
@@ -84,7 +84,8 @@ abstract class BaseRepository implements RepositoryInterface
         $model = $this->newModel();
         $model->fill($this->attributes($attributes))->save();
 
-        return $this->loadRelations($model);
+        // Перечитываем, чтобы получить значения колонок по умолчанию из БД
+        return $this->loadRelations($model->refresh());
     }
 
     public function update(int|string $id, DTO|array $attributes): Model
