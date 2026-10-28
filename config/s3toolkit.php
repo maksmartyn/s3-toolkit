@@ -11,6 +11,12 @@ return [
         'timeout' => (float) env('STORAGE_TIMEOUT', 30),
     ],
 
+    'access_keys' => [
+        // Клиент MinIO для управления ключами MinIO (в Docker-образе — /usr/local/bin/mc)
+        'mc_binary' => env('MC_BINARY', 'mc'),
+        'mc_timeout' => (int) env('MC_TIMEOUT', 30),
+    ],
+
     'operations' => [
         // Сколько секунд работает один шаг фоновой операции, прежде чем поставить в очередь продолжение
         'step_seconds' => (float) env('OPERATION_STEP_SECONDS', 20),

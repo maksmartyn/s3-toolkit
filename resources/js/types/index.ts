@@ -8,3 +8,4 @@ export * from './storage';
 export * from './bucket';
 export * from './bucketSettings';
 export * from './object';
+export * from './accessKey';

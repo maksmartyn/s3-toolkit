@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
+import AccessKeyController from '@/actions/App/Http/Controllers/Storage/AccessKeyController';
 import StorageController from '@/actions/App/Http/Controllers/Storage/StorageController';
 import BucketSection from '@/components/buckets/BucketSection.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
@@ -42,6 +43,7 @@ const props = defineProps<{
         createBuckets: boolean;
         deleteBuckets: boolean;
         viewObjects: boolean;
+        manageAccessKeys: boolean;
     };
 }>();
 
@@ -70,6 +72,17 @@ function destroy(): Promise<void> {
                 :description="storage.providerLabel"
             />
             <div class="flex gap-2">
+                <Button
+                    v-if="can.manageAccessKeys || can.update"
+                    variant="outline"
+                    as-child
+                >
+                    <Link
+                        :href="AccessKeyController.index.url(storage.id)"
+                        data-test="access-keys-link"
+                        >{{ $t('Access keys') }}</Link
+                    >
+                </Button>
                 <Button v-if="can.update" variant="outline" as-child>
                     <Link :href="StorageController.edit.url(storage.id)">{{
                         $t('Edit')

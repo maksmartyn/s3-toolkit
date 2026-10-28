@@ -27,6 +27,10 @@ enum AuditAction: string
     case StorageUpdated = 'storage.updated';
     case StorageDeleted = 'storage.deleted';
     case StorageAccessChanged = 'storage.access_changed';
+    case KeyManagementConfigured = 'storage.key_management_configured';
+    case AccessKeyCreated = 'access_key.created';
+    case AccessKeyStatusChanged = 'access_key.status_changed';
+    case AccessKeyDeleted = 'access_key.deleted';
 
     case BucketCreated = 'bucket.created';
     case BucketDeletionStarted = 'bucket.deletion_started';
@@ -73,7 +77,11 @@ enum AuditAction: string
             self::StorageCreated,
             self::StorageUpdated,
             self::StorageDeleted,
-            self::StorageAccessChanged => AuditSubjectType::Storage,
+            self::StorageAccessChanged,
+            self::KeyManagementConfigured,
+            self::AccessKeyCreated,
+            self::AccessKeyStatusChanged,
+            self::AccessKeyDeleted => AuditSubjectType::Storage,
 
             self::BucketCreated,
             self::BucketDeletionStarted,
@@ -120,6 +128,10 @@ enum AuditAction: string
             self::StorageUpdated => __('Storage updated'),
             self::StorageDeleted => __('Storage deleted'),
             self::StorageAccessChanged => __('Storage permissions changed'),
+            self::KeyManagementConfigured => __('Key management credentials changed'),
+            self::AccessKeyCreated => __('Access key created'),
+            self::AccessKeyStatusChanged => __('Access key status changed'),
+            self::AccessKeyDeleted => __('Access key deleted'),
             self::BucketCreated => __('Bucket created'),
             self::BucketDeletionStarted => __('Bucket deletion started'),
             self::BucketDeleted => __('Bucket deleted'),

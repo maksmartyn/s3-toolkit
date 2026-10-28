@@ -98,12 +98,14 @@ services:
         environment:
             MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
             MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+            # Go-рантайм иначе не знает о лимите контейнера и упирается в него при всплесках
+            GOMEMLIMIT: 280MiB
         volumes:
             - minio:/bitnami/minio/data
         ports:
             - '${MINIO_FORWARD_PORT:-9010}:9000'
             - '${MINIO_CONSOLE_FORWARD_PORT:-9011}:9001'
-        mem_limit: 256m
+        mem_limit: 384m
         profiles: [s3]
 
 volumes:

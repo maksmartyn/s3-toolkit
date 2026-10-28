@@ -5,6 +5,7 @@ use App\Http\Controllers\Bucket\BucketSettingsController;
 use App\Http\Controllers\Bucket\ObjectController;
 use App\Http\Controllers\Bucket\ObjectManageController;
 use App\Http\Controllers\Bucket\ObjectUploadController;
+use App\Http\Controllers\Storage\AccessKeyController;
 use App\Http\Controllers\Storage\StorageAccessController;
 use App\Http\Controllers\Storage\StorageController;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +24,14 @@ Route::middleware('auth')->prefix('storages')->name('storages.')->group(function
     });
 
     Route::put('{storage}/access', [StorageAccessController::class, 'update'])->name('access.update');
+
+    Route::controller(AccessKeyController::class)->prefix('{storage}/access-keys')->name('access-keys.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('status', 'status')->name('status');
+        Route::delete('/', 'destroy')->name('destroy');
+        Route::put('credentials', 'credentials')->name('credentials');
+    });
 
     Route::controller(BucketController::class)->prefix('{storage}/buckets')->name('buckets.')->group(function () {
         Route::post('/', 'store')->name('store');

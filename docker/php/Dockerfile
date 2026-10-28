@@ -1,6 +1,8 @@
 FROM ghcr.io/roadrunner-server/roadrunner:2025.1.15 AS roadrunner
 FROM composer:2 AS composer
 FROM node:22-bookworm-slim AS node
+# Клиент MinIO: управление ключами доступа MinIO (Admin API шифрует ответы так, что из PHP их не прочитать)
+FROM bitnamilegacy/minio:latest AS minio
 
 FROM php:8.4-cli-bookworm AS base
 
@@ -24,6 +26,7 @@ RUN apt-get update \
 
 COPY --from=roadrunner /usr/bin/rr /usr/local/bin/rr
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
+COPY --from=minio /opt/bitnami/minio-client/bin/mc /usr/local/bin/mc
 
 RUN groupadd -g ${GID} app && useradd -u ${UID} -g app -m -s /bin/bash app
 
