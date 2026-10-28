@@ -6,6 +6,7 @@ namespace App\Services\Storage;
 
 use App\Domain\Enum\Storage\StorageCapability;
 use App\Domain\Enum\Storage\StorageProvider;
+use Aws\Exception\AwsException;
 use Aws\S3\S3Client;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
@@ -210,5 +211,134 @@ final readonly class StorageGateway
     public function abortUpload(string $bucket, string $key, string $uploadId): void
     {
         $this->client->abortMultipartUpload(['Bucket' => $bucket, 'Key' => $key, 'UploadId' => $uploadId]);
+    }
+
+    /**
+     * @return 'Enabled'|'Suspended'|null null — версионирование ни разу не включалось
+     */
+    public function getVersioning(string $bucket): ?string
+    {
+        $status = $this->client->getBucketVersioning(['Bucket' => $bucket])->get('Status');
+
+        return in_array($status, ['Enabled', 'Suspended'], true) ? $status : null;
+    }
+
+    /**
+     * @param  'Enabled'|'Suspended'  $status
+     */
+    public function putVersioning(string $bucket, string $status): void
+    {
+        $this->client->putBucketVersioning(['Bucket' => $bucket, 'VersioningConfiguration' => ['Status' => $status]]);
+    }
+
+    /**
+     * @return list<array{key: string, value: string}>
+     */
+    public function getTags(string $bucket): array
+    {
+        try {
+            $tags = (array) ($this->client->getBucketTagging(['Bucket' => $bucket])->get('TagSet') ?? []);
+        } catch (AwsException $e) {
+            if ($this->isMissing($e, 'NoSuchTagSet', 'NoSuchTagSetError')) {
+                return [];
+            }
+
+            throw $e;
+        }
+
+        return array_values(array_map(fn (array $tag) => ['key' => (string) $tag['Key'], 'value' => (string) $tag['Value']], $tags));
+    }
+
+    /**
+     * Пустой список удаляет все теги: часть хранилищ не принимает пустой TagSet.
+     *
+     * @param  list<array{key: string, value: string}>  $tags
+     */
+    public function putTags(string $bucket, array $tags): void
+    {
+        if ($tags === []) {
+            $this->client->deleteBucketTagging(['Bucket' => $bucket]);
+
+            return;
+        }
+
+        $this->client->putBucketTagging([
+            'Bucket' => $bucket,
+            'Tagging' => ['TagSet' => array_map(fn (array $tag) => ['Key' => $tag['key'], 'Value' => $tag['value']], $tags)],
+        ]);
+    }
+
+    /**
+     * Политика как JSON-строка; null — политики нет.
+     */
+    public function getPolicy(string $bucket): ?string
+    {
+        try {
+            $policy = $this->client->getBucketPolicy(['Bucket' => $bucket])->get('Policy');
+        } catch (AwsException $e) {
+            if ($this->isMissing($e, 'NoSuchBucketPolicy')) {
+                return null;
+            }
+
+            throw $e;
+        }
+
+        $policy = is_string($policy) ? $policy : (string) $policy;
+
+        return $policy === '' ? null : $policy;
+    }
+
+    public function putPolicy(string $bucket, string $policy): void
+    {
+        $this->client->putBucketPolicy(['Bucket' => $bucket, 'Policy' => $policy]);
+    }
+
+    public function deletePolicy(string $bucket): void
+    {
+        $this->client->deleteBucketPolicy(['Bucket' => $bucket]);
+    }
+
+    /**
+     * Правила CORS в формате S3 API (AllowedOrigins, AllowedMethods, ...); пустой список — CORS не настроен.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function getCors(string $bucket): array
+    {
+        try {
+            return array_values((array) ($this->client->getBucketCors(['Bucket' => $bucket])->get('CORSRules') ?? []));
+        } catch (AwsException $e) {
+            if ($this->isMissing($e, 'NoSuchCORSConfiguration')) {
+                return [];
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rules
+     */
+    public function putCors(string $bucket, array $rules): void
+    {
+        if ($rules === []) {
+            $this->client->deleteBucketCors(['Bucket' => $bucket]);
+
+            return;
+        }
+
+        $this->client->execute($this->client->getCommand('PutBucketCors', [
+            'Bucket' => $bucket,
+            'CORSConfiguration' => ['CORSRules' => $rules],
+        ]));
+    }
+
+    /**
+     * «Настройка отсутствует» у провайдеров выражается по-разному: свой код ошибки или просто 404.
+     */
+    private function isMissing(AwsException $e, string ...$codes): bool
+    {
+        return in_array($e->getAwsErrorCode(), $codes, true)
+            || ($e->getStatusCode() === 404 && $e->getAwsErrorCode() !== 'NoSuchBucket');
     }
 }

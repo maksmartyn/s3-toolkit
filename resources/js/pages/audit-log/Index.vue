@@ -198,6 +198,39 @@ watch([action, dateFrom, dateTo, userId], applyFilters);
                                     {{ line }}
                                 </li>
                             </ul>
+                            <details
+                                v-for="(document, name) in entry.documents"
+                                :key="name"
+                                class="mt-1"
+                            >
+                                <summary
+                                    class="cursor-pointer text-xs text-muted-foreground"
+                                >
+                                    {{ $t('Show before and after') }}
+                                </summary>
+                                <div class="mt-2 grid gap-2 lg:grid-cols-2">
+                                    <div>
+                                        <div
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {{ $t('Before') }}
+                                        </div>
+                                        <pre
+                                            class="max-h-64 overflow-auto rounded bg-muted p-2 text-xs"
+                                            >{{ document.from ?? '—' }}</pre>
+                                    </div>
+                                    <div>
+                                        <div
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {{ $t('After') }}
+                                        </div>
+                                        <pre
+                                            class="max-h-64 overflow-auto rounded bg-muted p-2 text-xs"
+                                            >{{ document.to ?? '—' }}</pre>
+                                    </div>
+                                </div>
+                            </details>
                         </td>
                     </tr>
                     <tr v-if="entries.data.length === 0">

@@ -34,6 +34,9 @@ final class AuditEntryData extends DTO
     /** @var list<string> подробности в читаемом виде */
     public array $lines;
 
+    /** @var array<string, array{from: string|null, to: string|null}> документы «было/стало» для просмотра */
+    public array $documents = [];
+
     public string $source;
 
     public ?string $ip;

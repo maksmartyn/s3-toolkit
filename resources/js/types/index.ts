@@ -6,3 +6,4 @@ export * from './permissions';
 export * from './audit';
 export * from './storage';
 export * from './bucket';
+export * from './bucketSettings';

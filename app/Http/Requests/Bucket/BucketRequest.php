@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Requests\Bucket;
 
 use App\Domain\Enum\Permission\StoragePermission;
+use App\Domain\Enum\Storage\StorageCapability;
 use App\Http\Requests\Abstracts\FormRequest;
 use App\Models\Storage;
+use App\Services\Storage\StorageCapabilities;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
@@ -16,9 +18,20 @@ abstract class BucketRequest extends FormRequest
 {
     abstract protected function permission(): StoragePermission;
 
+    /**
+     * Функция хранилища, без которой действие недоступно (интерфейс его не показывает).
+     */
+    protected function capability(): ?StorageCapability
+    {
+        return null;
+    }
+
     public function authorize(): bool
     {
-        return $this->authUser()->can('use', [$this->storage(), $this->permission()]);
+        $capability = $this->capability();
+
+        return $this->authUser()->can('use', [$this->storage(), $this->permission()])
+            && ($capability === null || app(StorageCapabilities::class)->has($this->storage(), $capability));
     }
 
     /**

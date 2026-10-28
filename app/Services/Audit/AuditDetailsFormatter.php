@@ -46,6 +46,14 @@ final class AuditDetailsFormatter
             array_push($lines, ...$this->permissionLines($details['permissions']));
         }
 
+        foreach ((array) ($details['documents'] ?? []) as $name => $document) {
+            $lines[] = $this->t(match (true) {
+                ($document['from'] ?? null) === null => ':name: set',
+                ($document['to'] ?? null) === null => ':name: removed',
+                default => ':name: changed',
+            }, ['name' => $this->fieldLabel((string) $name)]);
+        }
+
         foreach ((array) ($details['values'] ?? []) as $key => $value) {
             $lines[] = $this->t(':field: :value', ['field' => $this->fieldLabel((string) $key), 'value' => $this->value($value)]);
         }
@@ -96,6 +104,10 @@ final class AuditDetailsFormatter
 
     private function fieldLabel(string $field): string
     {
+        if (str_starts_with($field, 'tag:')) {
+            return $this->t('Tag :key', ['key' => substr($field, 4)]);
+        }
+
         return match ($field) {
             'name' => __('Name'),
             'email' => __('Email'),
@@ -107,6 +119,9 @@ final class AuditDetailsFormatter
             'buckets' => __('Buckets'),
             'capabilities' => __('Supported features'),
             'deleted_objects' => __('Deleted objects and versions'),
+            'versioning' => __('Versioning'),
+            'policy' => __('Bucket policy'),
+            'cors' => __('CORS'),
             default => $field,
         };
     }

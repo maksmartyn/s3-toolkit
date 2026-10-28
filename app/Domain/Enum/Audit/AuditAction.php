@@ -31,6 +31,10 @@ enum AuditAction: string
     case BucketCreated = 'bucket.created';
     case BucketDeletionStarted = 'bucket.deletion_started';
     case BucketDeleted = 'bucket.deleted';
+    case BucketVersioningChanged = 'bucket.versioning_changed';
+    case BucketTagsChanged = 'bucket.tags_changed';
+    case BucketPolicyChanged = 'bucket.policy_changed';
+    case BucketCorsChanged = 'bucket.cors_changed';
 
     public function subjectType(): AuditSubjectType
     {
@@ -56,7 +60,11 @@ enum AuditAction: string
 
             self::BucketCreated,
             self::BucketDeletionStarted,
-            self::BucketDeleted => AuditSubjectType::Bucket,
+            self::BucketDeleted,
+            self::BucketVersioningChanged,
+            self::BucketTagsChanged,
+            self::BucketPolicyChanged,
+            self::BucketCorsChanged => AuditSubjectType::Bucket,
         };
     }
 
@@ -82,6 +90,10 @@ enum AuditAction: string
             self::BucketCreated => __('Bucket created'),
             self::BucketDeletionStarted => __('Bucket deletion started'),
             self::BucketDeleted => __('Bucket deleted'),
+            self::BucketVersioningChanged => __('Bucket versioning changed'),
+            self::BucketTagsChanged => __('Bucket tags changed'),
+            self::BucketPolicyChanged => __('Bucket policy changed'),
+            self::BucketCorsChanged => __('Bucket CORS changed'),
         };
     }
 }

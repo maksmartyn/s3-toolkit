@@ -67,6 +67,7 @@ final readonly class AuditService
             'subjectId' => $entry->subject_id,
             'subjectLabel' => $entry->subject_label,
             'lines' => $this->formatter->lines($entry->details),
+            'documents' => (array) ($entry->details['documents'] ?? []),
             'source' => $entry->source,
             'ip' => $entry->ip,
             'userAgent' => $entry->user_agent,

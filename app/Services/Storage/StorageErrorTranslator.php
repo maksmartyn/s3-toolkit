@@ -25,8 +25,21 @@ final class StorageErrorTranslator
                 'NoSuchBucket', 'NotFound' => __('The bucket does not exist.'),
                 'AuthorizationHeaderMalformed', 'InvalidRegion', 'IllegalLocationConstraintException' => __('Wrong region.'),
                 'NotImplemented' => __('The storage does not support this operation.'),
+                'MalformedPolicy' => __('The policy is invalid.'),
+                'MalformedXML', 'InvalidArgument', 'InvalidRequest', 'InvalidTag' => __('The storage rejected the parameters.'),
+                'InvalidBucketState' => __('The bucket state does not allow this change.'),
+                'BucketAlreadyExists', 'BucketAlreadyOwnedByYou' => __('A bucket with this name already exists.'),
                 default => null,
             };
+
+            // Для ошибок в переданных данных текст хранилища объясняет, что именно не так
+            $details = in_array($code, ['MalformedPolicy', 'MalformedXML', 'InvalidArgument', 'InvalidRequest', 'InvalidTag', 'InvalidBucketState'], true)
+                ? trim((string) $e->getAwsErrorMessage())
+                : '';
+
+            if (is_string($message) && $details !== '') {
+                $message = $message.' '.$details;
+            }
 
             if ($message === null && $e->getStatusCode() === 403) {
                 $message = __('Access denied. Check the key permissions.');

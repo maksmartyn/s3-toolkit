@@ -1,4 +1,8 @@
-export type AuditSubjectType = 'user' | 'permission_template';
+export type AuditSubjectType =
+    | 'user'
+    | 'permission_template'
+    | 'storage'
+    | 'bucket';
 
 /** App\Domain\DTO\Audit\AuditEntryData */
 export type AuditEntry = {
@@ -13,6 +17,7 @@ export type AuditEntry = {
     subjectId: number | null;
     subjectLabel: string | null;
     lines: string[];
+    documents: Record<string, { from: string | null; to: string | null }>;
     source: 'web' | 'system';
     ip: string | null;
     userAgent: string | null;

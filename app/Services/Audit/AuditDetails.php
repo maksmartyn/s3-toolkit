@@ -79,6 +79,17 @@ final class AuditDetails
     }
 
     /**
+     * Документ целиком «было/стало» (политика, CORS): секретов в них нет, а для аудита важно видеть права доступа.
+     * null — документа не было (или он удалён).
+     *
+     * @return array{documents: array<string, array{from: string|null, to: string|null}>}
+     */
+    public static function document(string $name, ?string $from, ?string $to): array
+    {
+        return ['documents' => [$name => ['from' => $from, 'to' => $to]]];
+    }
+
+    /**
      * Произвольные значения для показа: {ключ: число|строка}.
      *
      * @param  array<string, int|string>  $values

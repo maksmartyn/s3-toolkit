@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Deferred, router, usePage } from '@inertiajs/vue3';
+import { Deferred, Link, router, usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
 import { CircleX, RefreshCw } from '@lucide/vue';
 import { useThrottleFn } from '@vueuse/core';
 import BucketController from '@/actions/App/Http/Controllers/Bucket/BucketController';
+import BucketSettingsController from '@/actions/App/Http/Controllers/Bucket/BucketSettingsController';
 import CreateBucketDialog from '@/components/buckets/CreateBucketDialog.vue';
 import DeleteBucketDialog from '@/components/buckets/DeleteBucketDialog.vue';
 import Heading from '@/components/Heading.vue';
@@ -104,7 +105,16 @@ const failed = (operations: Operation[] | undefined) =>
                             :data-test="`bucket-${bucket.name}`"
                         >
                             <td class="px-4 py-2 font-mono">
-                                {{ bucket.name }}
+                                <Link
+                                    :href="
+                                        BucketSettingsController.show.url({
+                                            storage: storage.id,
+                                            bucket: bucket.name,
+                                        })
+                                    "
+                                    class="underline-offset-4 hover:underline"
+                                    >{{ bucket.name }}</Link
+                                >
                                 <div
                                     v-for="operation in bucket.operations"
                                     :key="operation.id"

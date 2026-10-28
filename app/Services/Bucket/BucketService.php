@@ -153,6 +153,13 @@ final readonly class BucketService
         });
     }
 
+    public function stats(int $storageId, string $bucket): ?BucketStatsData
+    {
+        $stats = $this->stats->find($storageId, $bucket);
+
+        return $stats === null ? null : $this->statsData($stats);
+    }
+
     public function saveStats(int $storageId, string $bucket, BucketStatsData $stats): void
     {
         $this->stats->put($storageId, $bucket, $stats);
