@@ -2,15 +2,23 @@
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { ArrowLeft } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import AclSection from '@/components/buckets/settings/AclSection.vue';
 import CorsSection from '@/components/buckets/settings/CorsSection.vue';
+import LifecycleSection from '@/components/buckets/settings/LifecycleSection.vue';
+import ObjectLockSection from '@/components/buckets/settings/ObjectLockSection.vue';
 import PolicySection from '@/components/buckets/settings/PolicySection.vue';
 import TagsSection from '@/components/buckets/settings/TagsSection.vue';
 import VersioningSection from '@/components/buckets/settings/VersioningSection.vue';
+import WebsiteSection from '@/components/buckets/settings/WebsiteSection.vue';
 import Heading from '@/components/Heading.vue';
 import { formatBytes, formatDateTime, formatNumber } from '@/lib/format';
 import { index, show as showStorage } from '@/routes/storages';
 import type {
+    BucketAcl,
+    BucketObjectLock,
     BucketSection,
+    BucketWebsite,
+    LifecycleRule,
     BucketStats,
     BucketTag,
     CorsRule,
@@ -33,17 +41,34 @@ const props = defineProps<{
     tags?: BucketSection<BucketTag[]> | null;
     policy?: BucketSection<string | null> | null;
     cors?: BucketSection<CorsRule[]> | null;
+    lifecycle?: BucketSection<LifecycleRule[]> | null;
+    acl?: BucketSection<BucketAcl> | null;
+    website?: BucketSection<BucketWebsite | null> | null;
+    objectLock?: BucketSection<BucketObjectLock> | null;
     can: {
         manageVersioning: boolean;
         manageTags: boolean;
         managePolicy: boolean;
         manageCors: boolean;
+        manageLifecycle: boolean;
+        manageAcl: boolean;
+        manageWebsite: boolean;
+        manageObjectLock: boolean;
     };
 }>();
 
 const locale = usePage().props.locale;
 
-type Tab = 'overview' | 'versioning' | 'tags' | 'policy' | 'cors';
+type Tab =
+    | 'overview'
+    | 'versioning'
+    | 'tags'
+    | 'policy'
+    | 'cors'
+    | 'lifecycle'
+    | 'acl'
+    | 'website'
+    | 'objectLock';
 
 const tabs = computed(() =>
     (
@@ -61,6 +86,22 @@ const tabs = computed(() =>
                 available: props.policy !== null,
             },
             { value: 'cors', label: 'CORS', available: props.cors !== null },
+            {
+                value: 'lifecycle',
+                label: 'Lifecycle rules',
+                available: props.lifecycle !== null,
+            },
+            { value: 'acl', label: 'ACL', available: props.acl !== null },
+            {
+                value: 'website',
+                label: 'Website',
+                available: props.website !== null,
+            },
+            {
+                value: 'objectLock',
+                label: 'Object Lock',
+                available: props.objectLock !== null,
+            },
         ] as { value: Tab; label: string; available: boolean }[]
     ).filter((tab) => tab.available),
 );
@@ -175,6 +216,34 @@ watch(tab, (value) => {
             :bucket="bucket"
             :section="cors"
             :can-manage="can.manageCors"
+        />
+        <LifecycleSection
+            v-if="tab === 'lifecycle'"
+            :storage="storage"
+            :bucket="bucket"
+            :section="lifecycle"
+            :can-manage="can.manageLifecycle"
+        />
+        <AclSection
+            v-if="tab === 'acl'"
+            :storage="storage"
+            :bucket="bucket"
+            :section="acl"
+            :can-manage="can.manageAcl"
+        />
+        <WebsiteSection
+            v-if="tab === 'website'"
+            :storage="storage"
+            :bucket="bucket"
+            :section="website"
+            :can-manage="can.manageWebsite"
+        />
+        <ObjectLockSection
+            v-if="tab === 'objectLock'"
+            :storage="storage"
+            :bucket="bucket"
+            :section="objectLock"
+            :can-manage="can.manageObjectLock"
         />
     </div>
 </template>

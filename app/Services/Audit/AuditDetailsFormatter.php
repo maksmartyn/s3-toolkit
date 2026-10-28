@@ -122,6 +122,10 @@ final class AuditDetailsFormatter
             'versioning' => __('Versioning'),
             'policy' => __('Bucket policy'),
             'cors' => __('CORS'),
+            'lifecycle' => __('Lifecycle rules'),
+            'acl' => __('ACL'),
+            'website' => __('Static website hosting'),
+            'object_lock' => __('Object Lock'),
             default => $field,
         };
     }

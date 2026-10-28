@@ -334,6 +334,162 @@ final readonly class StorageGateway
     }
 
     /**
+     * Правила жизненного цикла в формате S3 API; пустой список — правил нет.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function getLifecycle(string $bucket): array
+    {
+        try {
+            $rules = (array) ($this->client->getBucketLifecycleConfiguration(['Bucket' => $bucket])->get('Rules') ?? []);
+        } catch (AwsException $e) {
+            if ($this->isMissing($e, 'NoSuchLifecycleConfiguration')) {
+                return [];
+            }
+
+            throw $e;
+        }
+
+        // Пустой фильтр SDK отдаёт как пустой массив; в JSON он стал бы [] вместо объекта
+        return array_values(array_map(function (array $rule): array {
+            if (array_key_exists('Filter', $rule) && $rule['Filter'] === []) {
+                $rule['Filter'] = ['Prefix' => ''];
+            }
+
+            return $rule;
+        }, $rules));
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rules  пустой список — удалить конфигурацию
+     */
+    public function putLifecycle(string $bucket, array $rules): void
+    {
+        if ($rules === []) {
+            $this->client->deleteBucketLifecycle(['Bucket' => $bucket]);
+
+            return;
+        }
+
+        $this->client->execute($this->client->getCommand('PutBucketLifecycleConfiguration', [
+            'Bucket' => $bucket,
+            'LifecycleConfiguration' => ['Rules' => $rules],
+        ]));
+    }
+
+    /**
+     * @return array{owner: string|null, grants: list<array{grantee: string, type: string, permission: string}>}
+     */
+    public function getAcl(string $bucket): array
+    {
+        $result = $this->client->getBucketAcl(['Bucket' => $bucket]);
+        $owner = (array) ($result->get('Owner') ?? []);
+
+        $grants = array_map(function (array $grant): array {
+            $grantee = (array) ($grant['Grantee'] ?? []);
+
+            return [
+                'grantee' => (string) ($grantee['URI'] ?? $grantee['DisplayName'] ?? $grantee['EmailAddress'] ?? $grantee['ID'] ?? ''),
+                'type' => (string) ($grantee['Type'] ?? ''),
+                'permission' => (string) ($grant['Permission'] ?? ''),
+            ];
+        }, (array) ($result->get('Grants') ?? []));
+
+        return [
+            'owner' => isset($owner['DisplayName']) || isset($owner['ID']) ? (string) ($owner['DisplayName'] ?? $owner['ID']) : null,
+            'grants' => array_values($grants),
+        ];
+    }
+
+    public function putCannedAcl(string $bucket, string $acl): void
+    {
+        $this->client->execute($this->client->getCommand('PutBucketAcl', ['Bucket' => $bucket, 'ACL' => $acl]));
+    }
+
+    /**
+     * Настройки хостинга сайта в формате S3 API; null — хостинг выключен.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getWebsite(string $bucket): ?array
+    {
+        try {
+            $result = $this->client->getBucketWebsite(['Bucket' => $bucket])->toArray();
+        } catch (AwsException $e) {
+            if ($this->isMissing($e, 'NoSuchWebsiteConfiguration')) {
+                return null;
+            }
+
+            throw $e;
+        }
+
+        return array_intersect_key($result, array_flip(['IndexDocument', 'ErrorDocument', 'RedirectAllRequestsTo', 'RoutingRules']));
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $configuration  null — выключить хостинг
+     */
+    public function putWebsite(string $bucket, ?array $configuration): void
+    {
+        if ($configuration === null) {
+            $this->client->deleteBucketWebsite(['Bucket' => $bucket]);
+
+            return;
+        }
+
+        $this->client->execute($this->client->getCommand('PutBucketWebsite', [
+            'Bucket' => $bucket,
+            'WebsiteConfiguration' => $configuration,
+        ]));
+    }
+
+    /**
+     * @return array{enabled: bool, mode: string|null, days: int|null, years: int|null}
+     */
+    public function getObjectLock(string $bucket): array
+    {
+        try {
+            $configuration = (array) ($this->client->getObjectLockConfiguration(['Bucket' => $bucket])->get('ObjectLockConfiguration') ?? []);
+        } catch (AwsException $e) {
+            if ($this->isMissing($e, 'ObjectLockConfigurationNotFoundError')) {
+                return ['enabled' => false, 'mode' => null, 'days' => null, 'years' => null];
+            }
+
+            throw $e;
+        }
+
+        $retention = (array) ($configuration['Rule']['DefaultRetention'] ?? []);
+
+        return [
+            'enabled' => ($configuration['ObjectLockEnabled'] ?? null) === 'Enabled',
+            'mode' => isset($retention['Mode']) ? (string) $retention['Mode'] : null,
+            'days' => isset($retention['Days']) ? (int) $retention['Days'] : null,
+            'years' => isset($retention['Years']) ? (int) $retention['Years'] : null,
+        ];
+    }
+
+    /**
+     * Включает Object Lock (необратимо) и задаёт срок хранения по умолчанию. mode = null — без срока по умолчанию.
+     */
+    public function putObjectLock(string $bucket, ?string $mode, ?int $days, ?int $years): void
+    {
+        $configuration = ['ObjectLockEnabled' => 'Enabled'];
+
+        if ($mode !== null) {
+            $configuration['Rule'] = ['DefaultRetention' => array_filter([
+                'Mode' => $mode,
+                'Days' => $days,
+                'Years' => $years,
+            ], fn (mixed $value) => $value !== null)];
+        }
+
+        $this->client->execute($this->client->getCommand('PutObjectLockConfiguration', [
+            'Bucket' => $bucket,
+            'ObjectLockConfiguration' => $configuration,
+        ]));
+    }
+
+    /**
      * «Настройка отсутствует» у провайдеров выражается по-разному: свой код ошибки или просто 404.
      */
     private function isMissing(AwsException $e, string ...$codes): bool

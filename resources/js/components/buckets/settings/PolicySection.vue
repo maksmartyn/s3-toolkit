@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Plus, X } from '@lucide/vue';
 import { trans } from 'laravel-vue-i18n';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import BucketSettingsController from '@/actions/App/Http/Controllers/Bucket/BucketSettingsController';
 import SectionError from '@/components/buckets/settings/SectionError.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
@@ -38,8 +38,12 @@ const json = ref('');
 const statements = ref<PolicyStatementForm[]>([]);
 const formUnsupported = ref<string | null>(null);
 const conversionError = ref<string | null>(null);
+// Смена режима при загрузке данных не должна запускать преобразование (оно затёрло бы загруженный JSON)
+let loading = false;
 
 function load(policy: string | null): void {
+    loading = true;
+    void nextTick(() => (loading = false));
     json.value = policy ?? '';
     const parsed = parsePolicy(policy);
 
@@ -65,6 +69,10 @@ watch(
 
 // Переключение режимов: форма → JSON всегда возможна, JSON → форма — только если политика помещается в форму
 watch(mode, (next, previous) => {
+    if (loading) {
+        return;
+    }
+
     conversionError.value = null;
 
     if (next === 'json' && previous === 'form') {

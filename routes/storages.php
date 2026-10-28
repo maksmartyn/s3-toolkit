@@ -33,5 +33,9 @@ Route::middleware('auth')->prefix('storages')->name('storages.')->group(function
         Route::put('tags', 'tags')->name('tags');
         Route::put('policy', 'policy')->name('policy');
         Route::put('cors', 'cors')->name('cors');
+        Route::put('lifecycle', 'lifecycle')->name('lifecycle');
+        Route::put('acl', 'acl')->name('acl');
+        Route::put('website', 'website')->name('website');
+        Route::put('object-lock', 'objectLock')->name('object-lock');
     });
 });

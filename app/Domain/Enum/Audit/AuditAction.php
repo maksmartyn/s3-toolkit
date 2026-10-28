@@ -35,6 +35,10 @@ enum AuditAction: string
     case BucketTagsChanged = 'bucket.tags_changed';
     case BucketPolicyChanged = 'bucket.policy_changed';
     case BucketCorsChanged = 'bucket.cors_changed';
+    case BucketLifecycleChanged = 'bucket.lifecycle_changed';
+    case BucketAclChanged = 'bucket.acl_changed';
+    case BucketWebsiteChanged = 'bucket.website_changed';
+    case BucketObjectLockChanged = 'bucket.object_lock_changed';
 
     public function subjectType(): AuditSubjectType
     {
@@ -64,7 +68,11 @@ enum AuditAction: string
             self::BucketVersioningChanged,
             self::BucketTagsChanged,
             self::BucketPolicyChanged,
-            self::BucketCorsChanged => AuditSubjectType::Bucket,
+            self::BucketCorsChanged,
+            self::BucketLifecycleChanged,
+            self::BucketAclChanged,
+            self::BucketWebsiteChanged,
+            self::BucketObjectLockChanged => AuditSubjectType::Bucket,
         };
     }
 
@@ -94,6 +102,10 @@ enum AuditAction: string
             self::BucketTagsChanged => __('Bucket tags changed'),
             self::BucketPolicyChanged => __('Bucket policy changed'),
             self::BucketCorsChanged => __('Bucket CORS changed'),
+            self::BucketLifecycleChanged => __('Bucket lifecycle changed'),
+            self::BucketAclChanged => __('Bucket ACL changed'),
+            self::BucketWebsiteChanged => __('Static website hosting changed'),
+            self::BucketObjectLockChanged => __('Bucket Object Lock changed'),
         };
     }
 }
