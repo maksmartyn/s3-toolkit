@@ -90,6 +90,17 @@ final class AuditDetails
     }
 
     /**
+     * Затронутые объекты: первые ключи (с версиями) и общее количество. Полный список не храним — он может быть огромным.
+     *
+     * @param  list<string>  $keys
+     * @return array{objects: array{keys: list<string>, count: int}}
+     */
+    public static function objects(array $keys, ?int $count = null): array
+    {
+        return ['objects' => ['keys' => array_slice($keys, 0, 20), 'count' => $count ?? count($keys)]];
+    }
+
+    /**
      * Произвольные значения для показа: {ключ: число|строка}.
      *
      * @param  array<string, int|string>  $values

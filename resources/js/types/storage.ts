@@ -28,6 +28,7 @@ export type StorageDetails = {
     providerLabel: string;
     capabilities: StorageCapability[];
     endpoint: string | null;
+    publicEndpoint: string | null;
     region: string;
     usePathStyle: boolean;
     verifySsl: boolean;

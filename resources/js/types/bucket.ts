@@ -15,9 +15,15 @@ export type OperationStatus = 'queued' | 'running' | 'completed' | 'failed';
 export type Operation = {
     id: number;
     storageId: number;
-    type: 'bucket_delete' | 'bucket_stats';
+    type:
+        | 'bucket_delete'
+        | 'bucket_stats'
+        | 'folder_delete'
+        | 'folder_copy'
+        | 'folder_move';
     typeLabel: string;
     bucket: string;
+    prefix: string | null;
     status: OperationStatus;
     statusLabel: string;
     processed: number;

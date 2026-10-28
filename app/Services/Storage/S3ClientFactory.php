@@ -27,6 +27,21 @@ class S3ClientFactory
     }
 
     /**
+     * Клиент только для подписи ссылок, которые откроет браузер: с публичным endpoint, если он задан.
+     * Запросов к хранилищу не делает, поэтому проверка endpoint не нужна.
+     */
+    public function makePresigner(StorageConnectionData $connection): S3Client
+    {
+        $config = $this->config($connection);
+
+        if ($connection->publicEndpoint !== null) {
+            $config['endpoint'] = $connection->publicEndpoint;
+        }
+
+        return new S3Client($config);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     protected function config(StorageConnectionData $connection): array

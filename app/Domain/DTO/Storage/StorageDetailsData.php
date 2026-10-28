@@ -26,6 +26,8 @@ final class StorageDetailsData extends DTO
 
     public ?string $endpoint;
 
+    public ?string $publicEndpoint = null;
+
     public string $region;
 
     public bool $usePathStyle;

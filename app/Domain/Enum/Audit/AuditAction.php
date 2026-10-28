@@ -40,6 +40,19 @@ enum AuditAction: string
     case BucketWebsiteChanged = 'bucket.website_changed';
     case BucketObjectLockChanged = 'bucket.object_lock_changed';
 
+    case ObjectsDeleted = 'objects.deleted';
+    case ObjectsMoved = 'objects.moved';
+    case ObjectLinkCreated = 'object.link_created';
+    case ObjectAclChanged = 'object.acl_changed';
+    case ObjectRetentionChanged = 'object.retention_changed';
+    case ObjectLegalHoldChanged = 'object.legal_hold_changed';
+    case ObjectVersionRestored = 'object.version_restored';
+    case UploadsAborted = 'objects.uploads_aborted';
+    case FolderDeletionStarted = 'folder.deletion_started';
+    case FolderDeleted = 'folder.deleted';
+    case FolderMoveStarted = 'folder.move_started';
+    case FolderMoved = 'folder.moved';
+
     public function subjectType(): AuditSubjectType
     {
         return match ($this) {
@@ -72,7 +85,19 @@ enum AuditAction: string
             self::BucketLifecycleChanged,
             self::BucketAclChanged,
             self::BucketWebsiteChanged,
-            self::BucketObjectLockChanged => AuditSubjectType::Bucket,
+            self::BucketObjectLockChanged,
+            self::ObjectsDeleted,
+            self::ObjectsMoved,
+            self::ObjectLinkCreated,
+            self::ObjectAclChanged,
+            self::ObjectRetentionChanged,
+            self::ObjectLegalHoldChanged,
+            self::ObjectVersionRestored,
+            self::UploadsAborted,
+            self::FolderDeletionStarted,
+            self::FolderDeleted,
+            self::FolderMoveStarted,
+            self::FolderMoved => AuditSubjectType::Bucket,
         };
     }
 
@@ -106,6 +131,18 @@ enum AuditAction: string
             self::BucketAclChanged => __('Bucket ACL changed'),
             self::BucketWebsiteChanged => __('Static website hosting changed'),
             self::BucketObjectLockChanged => __('Bucket Object Lock changed'),
+            self::ObjectsDeleted => __('Objects deleted'),
+            self::ObjectsMoved => __('Objects moved'),
+            self::ObjectLinkCreated => __('Temporary link created'),
+            self::ObjectAclChanged => __('Object ACL changed'),
+            self::ObjectRetentionChanged => __('Object retention changed'),
+            self::ObjectLegalHoldChanged => __('Object legal hold changed'),
+            self::ObjectVersionRestored => __('Object version restored'),
+            self::UploadsAborted => __('Unfinished uploads aborted'),
+            self::FolderDeletionStarted => __('Folder deletion started'),
+            self::FolderDeleted => __('Folder deleted'),
+            self::FolderMoveStarted => __('Folder move started'),
+            self::FolderMoved => __('Folder moved'),
         };
     }
 }

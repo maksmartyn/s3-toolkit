@@ -16,6 +16,9 @@ final class StorageConnectionData extends DTO
 
     public ?string $endpoint = null;
 
+    /** Адрес для ссылок, открываемых в браузере; null — тот же, что endpoint */
+    public ?string $publicEndpoint = null;
+
     public string $region;
 
     public bool $usePathStyle = false;

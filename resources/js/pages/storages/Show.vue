@@ -41,6 +41,7 @@ const props = defineProps<{
         viewBuckets: boolean;
         createBuckets: boolean;
         deleteBuckets: boolean;
+        viewObjects: boolean;
     };
 }>();
 

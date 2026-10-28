@@ -51,6 +51,7 @@ const form = reactive({
     name: props.storage?.name ?? '',
     provider: (props.storage?.provider ?? 'minio') as StorageProvider,
     endpoint: props.storage?.endpoint ?? '',
+    public_endpoint: props.storage?.publicEndpoint ?? '',
     region: props.storage?.region ?? 'us-east-1',
     use_path_style: props.storage?.usePathStyle ?? true,
     verify_ssl: props.storage?.verifySsl ?? true,
@@ -126,6 +127,7 @@ function payload() {
     return {
         ...form,
         endpoint: form.endpoint.trim() || null,
+        public_endpoint: form.public_endpoint.trim() || null,
         buckets: form.buckets,
     };
 }
@@ -249,6 +251,26 @@ const isR2 = computed(
                 />
                 <InputError :message="errors.region" />
             </div>
+        </div>
+
+        <div class="grid gap-2">
+            <Label for="public_endpoint">{{
+                $t('Public endpoint (optional)')
+            }}</Label>
+            <Input
+                id="public_endpoint"
+                v-model="form.public_endpoint"
+                :placeholder="'https://files.example.com'"
+                autocomplete="off"
+            />
+            <p class="text-sm text-muted-foreground">
+                {{
+                    $t(
+                        'Address for download links opened in the browser, if the server reaches the storage by an internal address (for example inside Docker). Empty — same as the endpoint.',
+                    )
+                }}
+            </p>
+            <InputError :message="errors.public_endpoint" />
         </div>
 
         <div class="flex flex-col gap-3">

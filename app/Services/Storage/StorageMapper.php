@@ -41,6 +41,7 @@ final readonly class StorageMapper
             'providerLabel' => $storage->provider->label(),
             'capabilities' => StorageCapabilities::values($this->capabilities->enabled($storage)),
             'endpoint' => $storage->endpoint,
+            'publicEndpoint' => $storage->public_endpoint,
             'region' => $storage->region,
             'usePathStyle' => $storage->use_path_style,
             'verifySsl' => $storage->verify_ssl,
@@ -56,6 +57,7 @@ final readonly class StorageMapper
         return new StorageConnectionData([
             'provider' => $storage->provider,
             'endpoint' => $storage->endpoint,
+            'publicEndpoint' => $storage->public_endpoint,
             'region' => $storage->region,
             'usePathStyle' => $storage->use_path_style,
             'verifySsl' => $storage->verify_ssl,

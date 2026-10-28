@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property StorageProvider $provider
  * @property string|null $endpoint
+ * @property string|null $public_endpoint
  * @property string $region
  * @property bool $use_path_style
  * @property bool $verify_ssl
@@ -33,7 +34,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonInterface|null $updated_at
  */
 #[Fillable([
-    'name', 'provider', 'endpoint', 'region', 'use_path_style', 'verify_ssl',
+    'name', 'provider', 'endpoint', 'public_endpoint', 'region', 'use_path_style', 'verify_ssl',
     'access_key_id', 'secret_access_key', 'admin_credentials', 'buckets', 'capabilities', 'created_by',
 ])]
 #[Hidden(['access_key_id', 'secret_access_key', 'admin_credentials'])]

@@ -90,6 +90,7 @@ final class StorageController extends Controller
                 'viewBuckets' => $canViewBuckets,
                 'createBuckets' => $actor->can('use', [$storage, StoragePermission::CreateBuckets]),
                 'deleteBuckets' => $actor->can('use', [$storage, StoragePermission::DeleteBuckets]),
+                'viewObjects' => $actor->can('use', [$storage, StoragePermission::ViewObjects]),
             ],
         ]);
     }

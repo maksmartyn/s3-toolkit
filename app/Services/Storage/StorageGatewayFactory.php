@@ -22,6 +22,7 @@ final readonly class StorageGatewayFactory
 
         return new StorageGateway(
             client: $this->clients->make($connection),
+            presigner: fn () => $this->clients->makePresigner($connection),
             provider: $storage->provider,
             region: $storage->region,
             capabilities: $this->capabilities->enabled($storage),

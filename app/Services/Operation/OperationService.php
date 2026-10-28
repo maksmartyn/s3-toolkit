@@ -11,6 +11,7 @@ use App\Events\OperationUpdated;
 use App\Exceptions\DomainException;
 use App\Jobs\Bucket\CalculateBucketStatsJob;
 use App\Jobs\Bucket\DeleteBucketJob;
+use App\Jobs\Bucket\FolderOperationJob;
 use App\Models\BackgroundOperation;
 use App\Repositories\Operation\OperationRepositoryInterface;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -30,11 +31,12 @@ final readonly class OperationService
     /**
      * Ставит операцию в очередь. Над одним бакетом одновременно идёт не больше одной операции.
      */
-    public function start(?int $userId, int $storageId, OperationType $type, string $bucket, ?int $total = null): OperationData
+    /**
+     * @param  array<string, mixed>  $params  параметры операции (префикс, куда копировать); хранятся в состоянии
+     */
+    public function start(?int $userId, int $storageId, OperationType $type, string $bucket, ?int $total = null, array $params = []): OperationData
     {
-        if ($this->operations->activeForBucket($storageId, $bucket) !== null) {
-            throw new DomainException(__('Another operation is already running for this bucket.'));
-        }
+        $this->ensureNoConflict($storageId, $type, $bucket, isset($params['prefix']) ? (string) $params['prefix'] : null);
 
         $operation = $this->operations->create([
             'user_id' => $userId,
@@ -43,6 +45,7 @@ final readonly class OperationService
             'bucket' => $bucket,
             'status' => OperationStatus::Queued,
             'total' => $total,
+            'state' => $params === [] ? null : ['params' => $params],
         ]);
 
         $data = $this->broadcast($operation);
@@ -51,6 +54,7 @@ final readonly class OperationService
         match ($type) {
             OperationType::BucketDelete => DeleteBucketJob::dispatch($operation->id)->afterCommit(),
             OperationType::BucketStats => CalculateBucketStatsJob::dispatch($operation->id)->afterCommit(),
+            OperationType::FolderDelete, OperationType::FolderCopy, OperationType::FolderMove => FolderOperationJob::dispatch($operation->id)->afterCommit(),
         };
 
         return $data;
@@ -86,10 +90,13 @@ final readonly class OperationService
      */
     public function complete(int $id, array $result = []): OperationData
     {
+        $params = $this->operations->findOrFail($id)->state['params'] ?? null;
+
         return $this->broadcast($this->operations->update($id, [
             'status' => OperationStatus::Completed,
             'result' => $result === [] ? null : $result,
-            'state' => null,
+            // Параметры оставляем: по ним видно, над какой «папкой» шла операция
+            'state' => $params === null ? null : ['params' => $params],
             'finished_at' => now(),
         ]));
     }
@@ -127,6 +134,7 @@ final readonly class OperationService
             'type' => $operation->type,
             'typeLabel' => $operation->type->label(),
             'bucket' => $operation->bucket,
+            'prefix' => isset($operation->state['params']['prefix']) ? (string) $operation->state['params']['prefix'] : null,
             'status' => $operation->status,
             'statusLabel' => $operation->status->label(),
             'processed' => $operation->processed,
@@ -137,6 +145,27 @@ final readonly class OperationService
             'finishedAt' => $operation->finished_at?->toImmutable(),
             'createdAt' => $operation->created_at?->toImmutable(),
         ]);
+    }
+
+    /**
+     * Над бакетом целиком (удаление, статистика) — только одна операция; над разными «папками» — несколько,
+     * но не над одной и той же и не вместе с операцией над всем бакетом.
+     */
+    private function ensureNoConflict(int $storageId, OperationType $type, string $bucket, ?string $prefix): void
+    {
+        $bucketLevel = fn (OperationType $t): bool => in_array($t, [OperationType::BucketDelete, OperationType::BucketStats], true);
+
+        foreach ($this->operations->activeFor($storageId) as $active) {
+            if ($active->bucket !== $bucket) {
+                continue;
+            }
+
+            $activePrefix = isset($active->state['params']['prefix']) ? (string) $active->state['params']['prefix'] : null;
+
+            if ($bucketLevel($type) || $bucketLevel($active->type) || $activePrefix === $prefix) {
+                throw new DomainException(__('Another operation is already running for this bucket.'));
+            }
+        }
     }
 
     /**

@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { Deferred, Link, router, usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
-import { CircleX, RefreshCw } from '@lucide/vue';
+import { CircleX, RefreshCw, Settings } from '@lucide/vue';
 import { useThrottleFn } from '@vueuse/core';
 import BucketController from '@/actions/App/Http/Controllers/Bucket/BucketController';
 import BucketSettingsController from '@/actions/App/Http/Controllers/Bucket/BucketSettingsController';
+import ObjectController from '@/actions/App/Http/Controllers/Bucket/ObjectController';
 import CreateBucketDialog from '@/components/buckets/CreateBucketDialog.vue';
 import DeleteBucketDialog from '@/components/buckets/DeleteBucketDialog.vue';
 import Heading from '@/components/Heading.vue';
@@ -18,7 +19,11 @@ const props = defineProps<{
     storage: Storage;
     buckets?: BucketList | null;
     recentOperations?: Operation[];
-    can: { createBuckets: boolean; deleteBuckets: boolean };
+    can: {
+        createBuckets: boolean;
+        deleteBuckets: boolean;
+        viewObjects: boolean;
+    };
 }>();
 
 const locale = usePage().props.locale;
@@ -107,7 +112,10 @@ const failed = (operations: Operation[] | undefined) =>
                             <td class="px-4 py-2 font-mono">
                                 <Link
                                     :href="
-                                        BucketSettingsController.show.url({
+                                        (can.viewObjects
+                                            ? ObjectController.index
+                                            : BucketSettingsController.show
+                                        ).url({
                                             storage: storage.id,
                                             bucket: bucket.name,
                                         })
@@ -184,6 +192,25 @@ const failed = (operations: Operation[] | undefined) =>
                                 >
                             </td>
                             <td class="px-4 py-2 text-right whitespace-nowrap">
+                                <Button
+                                    v-if="can.viewObjects"
+                                    as-child
+                                    variant="ghost"
+                                    size="icon"
+                                    :aria-label="$t('Bucket settings')"
+                                >
+                                    <Link
+                                        :href="
+                                            BucketSettingsController.show.url({
+                                                storage: storage.id,
+                                                bucket: bucket.name,
+                                            })
+                                        "
+                                        :data-test="`settings-bucket-${bucket.name}`"
+                                    >
+                                        <Settings />
+                                    </Link>
+                                </Button>
                                 <Button
                                     variant="ghost"
                                     size="sm"

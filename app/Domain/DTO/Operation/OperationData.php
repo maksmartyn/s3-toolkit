@@ -21,6 +21,9 @@ final class OperationData extends DTO
 
     public string $bucket;
 
+    /** Для операций над «папкой» — её префикс */
+    public ?string $prefix = null;
+
     public OperationStatus $status;
 
     public string $statusLabel;

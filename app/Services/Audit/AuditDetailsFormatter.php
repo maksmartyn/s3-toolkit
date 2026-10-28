@@ -46,6 +46,16 @@ final class AuditDetailsFormatter
             array_push($lines, ...$this->permissionLines($details['permissions']));
         }
 
+        if (is_array($details['objects'] ?? null)) {
+            $keys = array_map(strval(...), (array) ($details['objects']['keys'] ?? []));
+            $count = (int) ($details['objects']['count'] ?? count($keys));
+
+            $lines[] = $this->t(count($keys) < $count ? 'Objects: :list … (:count total)' : 'Objects: :list', [
+                'list' => implode(', ', $keys),
+                'count' => (string) $count,
+            ]);
+        }
+
         foreach ((array) ($details['documents'] ?? []) as $name => $document) {
             $lines[] = $this->t(match (true) {
                 ($document['from'] ?? null) === null => ':name: set',
@@ -113,6 +123,7 @@ final class AuditDetailsFormatter
             'email' => __('Email'),
             'provider' => __('Provider'),
             'endpoint' => __('Endpoint'),
+            'public_endpoint' => __('Public endpoint'),
             'region' => __('Region'),
             'use_path_style' => __('Path-style addressing'),
             'verify_ssl' => __('Verify SSL certificate'),
@@ -126,6 +137,12 @@ final class AuditDetailsFormatter
             'acl' => __('ACL'),
             'website' => __('Static website hosting'),
             'object_lock' => __('Object Lock'),
+            'prefix' => __('Folder'),
+            'target' => __('Destination'),
+            'expires_at' => __('Valid until'),
+            'retention' => __('Retention'),
+            'legal_hold' => __('Legal hold'),
+            'version' => __('Version'),
             default => $field,
         };
     }

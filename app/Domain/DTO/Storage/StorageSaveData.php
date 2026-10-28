@@ -19,6 +19,8 @@ final class StorageSaveData extends DTO
 
     public ?string $endpoint = null;
 
+    public ?string $publicEndpoint = null;
+
     public string $region;
 
     public bool $usePathStyle = false;

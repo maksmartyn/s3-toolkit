@@ -26,12 +26,27 @@ abstract class BucketRequest extends FormRequest
         return null;
     }
 
+    /**
+     * Права, нужные дополнительно к основному (например, перемещение — это запись и удаление).
+     *
+     * @return list<StoragePermission>
+     */
+    protected function additionalPermissions(): array
+    {
+        return [];
+    }
+
     public function authorize(): bool
     {
         $capability = $this->capability();
 
-        return $this->authUser()->can('use', [$this->storage(), $this->permission()])
-            && ($capability === null || app(StorageCapabilities::class)->has($this->storage(), $capability));
+        foreach ([$this->permission(), ...$this->additionalPermissions()] as $permission) {
+            if (! $this->authUser()->can('use', [$this->storage(), $permission])) {
+                return false;
+            }
+        }
+
+        return $capability === null || app(StorageCapabilities::class)->has($this->storage(), $capability);
     }
 
     /**
