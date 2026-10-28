@@ -9,6 +9,7 @@ enum AuditSubjectType: string
     case User = 'user';
     case PermissionTemplate = 'permission_template';
     case Storage = 'storage';
+    case Bucket = 'bucket';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum AuditSubjectType: string
             self::User => __('User'),
             self::PermissionTemplate => __('Permission template'),
             self::Storage => __('Storage'),
+            self::Bucket => __('Bucket'),
         };
     }
 }

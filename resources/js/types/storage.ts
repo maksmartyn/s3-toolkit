@@ -1,4 +1,5 @@
 import type { UserStatus } from './auth';
+import type { StorageCapability } from './bucket';
 
 export type StorageProvider =
     | 'aws'
@@ -15,6 +16,7 @@ export type Storage = {
     name: string;
     provider: StorageProvider;
     providerLabel: string;
+    capabilities: StorageCapability[];
     permissions: number[];
 };
 
@@ -24,6 +26,7 @@ export type StorageDetails = {
     name: string;
     provider: StorageProvider;
     providerLabel: string;
+    capabilities: StorageCapability[];
     endpoint: string | null;
     region: string;
     usePathStyle: boolean;
@@ -42,6 +45,7 @@ export type ProviderPreset = {
     endpointRequired: boolean;
     defaultRegion: string;
     defaultPathStyle: boolean;
+    capabilities: StorageCapability[];
 };
 
 /** App\Domain\DTO\Storage\ConnectionTestResultData */

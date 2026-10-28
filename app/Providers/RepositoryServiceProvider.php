@@ -6,6 +6,10 @@ namespace App\Providers;
 
 use App\Repositories\Audit\AuditLogRepository;
 use App\Repositories\Audit\AuditLogRepositoryInterface;
+use App\Repositories\Bucket\BucketStatsRepository;
+use App\Repositories\Bucket\BucketStatsRepositoryInterface;
+use App\Repositories\Operation\OperationRepository;
+use App\Repositories\Operation\OperationRepositoryInterface;
 use App\Repositories\Permission\PermissionTemplateRepository;
 use App\Repositories\Permission\PermissionTemplateRepositoryInterface;
 use App\Repositories\Storage\StorageAccessRepository;
@@ -29,5 +33,7 @@ class RepositoryServiceProvider extends ServiceProvider
         AuditLogRepositoryInterface::class => AuditLogRepository::class,
         StorageRepositoryInterface::class => StorageRepository::class,
         StorageAccessRepositoryInterface::class => StorageAccessRepository::class,
+        OperationRepositoryInterface::class => OperationRepository::class,
+        BucketStatsRepositoryInterface::class => BucketStatsRepository::class,
     ];
 }

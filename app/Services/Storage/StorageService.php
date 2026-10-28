@@ -34,6 +34,7 @@ final readonly class StorageService
         private StorageMapper $mapper,
         private StorageConnectionTester $tester,
         private EndpointGuard $guard,
+        private StorageCapabilities $capabilities,
         private AuditService $audit,
     ) {}
 
@@ -200,6 +201,9 @@ final readonly class StorageService
             'use_path_style' => $data->usePathStyle,
             'verify_ssl' => $data->verifySsl,
             'buckets' => $data->buckets === [] ? null : $data->buckets,
+            'capabilities' => $data->capabilities === null
+                ? null
+                : $this->capabilities->overrides($data->provider, $data->capabilities),
         ];
     }
 
@@ -218,6 +222,10 @@ final readonly class StorageService
             'use_path_style' => $storage->use_path_style,
             'verify_ssl' => $storage->verify_ssl,
             'buckets' => $storage->buckets,
+            'capabilities' => array_map(
+                fn ($capability) => $capability->label(),
+                $this->capabilities->enabled($storage),
+            ),
         ];
     }
 

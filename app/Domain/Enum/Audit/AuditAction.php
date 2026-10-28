@@ -28,6 +28,10 @@ enum AuditAction: string
     case StorageDeleted = 'storage.deleted';
     case StorageAccessChanged = 'storage.access_changed';
 
+    case BucketCreated = 'bucket.created';
+    case BucketDeletionStarted = 'bucket.deletion_started';
+    case BucketDeleted = 'bucket.deleted';
+
     public function subjectType(): AuditSubjectType
     {
         return match ($this) {
@@ -49,6 +53,10 @@ enum AuditAction: string
             self::StorageUpdated,
             self::StorageDeleted,
             self::StorageAccessChanged => AuditSubjectType::Storage,
+
+            self::BucketCreated,
+            self::BucketDeletionStarted,
+            self::BucketDeleted => AuditSubjectType::Bucket,
         };
     }
 
@@ -71,6 +79,9 @@ enum AuditAction: string
             self::StorageUpdated => __('Storage updated'),
             self::StorageDeleted => __('Storage deleted'),
             self::StorageAccessChanged => __('Storage permissions changed'),
+            self::BucketCreated => __('Bucket created'),
+            self::BucketDeletionStarted => __('Bucket deletion started'),
+            self::BucketDeleted => __('Bucket deleted'),
         };
     }
 }

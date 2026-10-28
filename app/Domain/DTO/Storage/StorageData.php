@@ -20,6 +20,9 @@ final class StorageData extends DTO
 
     public string $providerLabel;
 
+    /** @var list<string> включённые функции (StorageCapability) */
+    public array $capabilities = [];
+
     /** @var list<int> права текущего пользователя на хранилище */
     public array $permissions = [];
 }

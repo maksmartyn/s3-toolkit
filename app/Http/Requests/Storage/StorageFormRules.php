@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Storage;
 
 use App\Domain\DTO\Storage\StorageSaveData;
+use App\Domain\Enum\Storage\StorageCapability;
 use App\Domain\Enum\Storage\StorageProvider;
 use App\Models\Storage;
 use Illuminate\Validation\Rule;
@@ -45,6 +46,8 @@ trait StorageFormRules
             'secret_access_key' => [$keysRequired, 'nullable', 'string', 'max:1024'],
             'buckets' => ['nullable', 'array', 'max:100'],
             'buckets.*' => ['string', 'distinct', 'min:1', 'max:255', 'regex:/^[^\s\/]+$/'],
+            'capabilities' => ['nullable', 'array'],
+            'capabilities.*' => ['string', 'distinct', Rule::enum(StorageCapability::class)],
         ];
     }
 
@@ -63,6 +66,8 @@ trait StorageFormRules
             'accessKeyId' => $this->validated('access_key_id') ?: null,
             'secretAccessKey' => $this->validated('secret_access_key') ?: null,
             'buckets' => $buckets === [] ? null : $buckets,
+            // Отсутствие поля — функции по умолчанию для провайдера
+            'capabilities' => $this->has('capabilities') ? (array) ($this->validated('capabilities') ?? []) : null,
         ]);
     }
 

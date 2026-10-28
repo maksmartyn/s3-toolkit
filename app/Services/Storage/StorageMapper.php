@@ -13,8 +13,10 @@ use App\Domain\Enum\Storage\StorageProvider;
 use App\Domain\ValueObject\Permission\PermissionMask;
 use App\Models\Storage;
 
-final class StorageMapper
+final readonly class StorageMapper
 {
+    public function __construct(private StorageCapabilities $capabilities) {}
+
     /**
      * @param  PermissionMask<StoragePermission>  $permissions  права текущего пользователя
      */
@@ -25,6 +27,7 @@ final class StorageMapper
             'name' => $storage->name,
             'provider' => $storage->provider,
             'providerLabel' => $storage->provider->label(),
+            'capabilities' => StorageCapabilities::values($this->capabilities->enabled($storage)),
             'permissions' => $permissions->values(),
         ]);
     }
@@ -36,6 +39,7 @@ final class StorageMapper
             'name' => $storage->name,
             'provider' => $storage->provider,
             'providerLabel' => $storage->provider->label(),
+            'capabilities' => StorageCapabilities::values($this->capabilities->enabled($storage)),
             'endpoint' => $storage->endpoint,
             'region' => $storage->region,
             'usePathStyle' => $storage->use_path_style,
@@ -70,6 +74,7 @@ final class StorageMapper
             'endpointRequired' => $provider->endpointRequired(),
             'defaultRegion' => $provider->defaultRegion(),
             'defaultPathStyle' => $provider->defaultPathStyle(),
+            'capabilities' => StorageCapabilities::values($this->capabilities->defaults($provider)),
         ]);
     }
 

@@ -9,6 +9,7 @@ use App\Domain\DTO\Audit\AuditFilterData;
 use App\Domain\DTO\Audit\AuditRecordData;
 use App\Models\AuditLogEntry;
 use App\Repositories\Audit\AuditLogRepositoryInterface;
+use App\Repositories\User\UserRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
@@ -20,11 +21,14 @@ final readonly class AuditService
         private AuditLogRepositoryInterface $entries,
         private AuditContext $context,
         private AuditDetailsFormatter $formatter,
+        private UserRepositoryInterface $users,
     ) {}
 
     public function record(AuditRecordData $data): void
     {
-        $actor = $this->context->actor();
+        $actor = $data->actorId !== null
+            ? $this->users->findWithTrashedOrFail($data->actorId)
+            : $this->context->actor();
 
         $this->entries->append([
             'actor_id' => $actor?->id,

@@ -28,6 +28,13 @@ services:
         command: php artisan horizon
         mem_limit: 256m
 
+    reverb:
+        <<: *php
+        command: php artisan reverb:start --host=0.0.0.0 --port=8080
+        ports:
+            - '${REVERB_FORWARD_PORT:-8091}:8080'
+        mem_limit: 128m
+
     vite:
         <<: *php
         command: npm run dev -- --host 0.0.0.0 --port 5174 --strictPort

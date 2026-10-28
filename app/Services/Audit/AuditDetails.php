@@ -69,6 +69,27 @@ final class AuditDetails
     }
 
     /**
+     * Хранилище, в котором находится объект действия (бакет).
+     *
+     * @return array{storage: array{id: int, name: string}}
+     */
+    public static function storage(int $id, string $name): array
+    {
+        return ['storage' => ['id' => $id, 'name' => $name]];
+    }
+
+    /**
+     * Произвольные значения для показа: {ключ: число|строка}.
+     *
+     * @param  array<string, int|string>  $values
+     * @return array{values: array<string, int|string>}
+     */
+    public static function values(array $values): array
+    {
+        return ['values' => $values];
+    }
+
+    /**
      * @param  array<string, bool>  $flags
      * @return array{flags: array<string, bool>}
      */

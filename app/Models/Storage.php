@@ -27,13 +27,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $secret_access_key
  * @property array<string, mixed>|null $admin_credentials
  * @property list<string>|null $buckets
+ * @property array<string, bool>|null $capabilities
  * @property int|null $created_by
  * @property CarbonInterface|null $created_at
  * @property CarbonInterface|null $updated_at
  */
 #[Fillable([
     'name', 'provider', 'endpoint', 'region', 'use_path_style', 'verify_ssl',
-    'access_key_id', 'secret_access_key', 'admin_credentials', 'buckets', 'created_by',
+    'access_key_id', 'secret_access_key', 'admin_credentials', 'buckets', 'capabilities', 'created_by',
 ])]
 #[Hidden(['access_key_id', 'secret_access_key', 'admin_credentials'])]
 class Storage extends Model
@@ -62,6 +63,7 @@ class Storage extends Model
             'secret_access_key' => 'encrypted',
             'admin_credentials' => 'encrypted:array',
             'buckets' => 'array',
+            'capabilities' => 'array',
         ];
     }
 }

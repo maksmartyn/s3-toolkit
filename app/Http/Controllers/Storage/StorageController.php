@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Storage;
 
 use App\Domain\Enum\Permission\PermissionScope;
+use App\Domain\Enum\Permission\StoragePermission;
+use App\Domain\Enum\Storage\StorageCapability;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Storage\StorageCreateRequest;
 use App\Http\Requests\Storage\StorageDeleteRequest;
@@ -15,6 +17,8 @@ use App\Http\Requests\Storage\StorageStoreRequest;
 use App\Http\Requests\Storage\StorageTestConnectionRequest;
 use App\Http\Requests\Storage\StorageUpdateRequest;
 use App\Models\Storage;
+use App\Services\Bucket\BucketService;
+use App\Services\Operation\OperationService;
 use App\Services\Permission\PermissionCatalog;
 use App\Services\Permission\PermissionTemplateService;
 use App\Services\Storage\StorageAccessService;
@@ -31,6 +35,8 @@ final class StorageController extends Controller
         private readonly StorageAccessService $accesses,
         private readonly PermissionCatalog $catalog,
         private readonly PermissionTemplateService $templates,
+        private readonly BucketService $buckets,
+        private readonly OperationService $operations,
     ) {}
 
     public function index(StorageIndexRequest $request): Response
@@ -48,6 +54,7 @@ final class StorageController extends Controller
         return Inertia::render('storages/Form', [
             'storage' => null,
             'providers' => $this->storages->presets(),
+            'capabilityOptions' => $this->capabilityOptions(),
         ]);
     }
 
@@ -64,8 +71,12 @@ final class StorageController extends Controller
     {
         $actor = $request->authUser();
         $canManageAccess = $actor->can('manageAccess', $storage);
+        $canViewBuckets = $actor->can('use', [$storage, StoragePermission::ViewBuckets]);
 
         return Inertia::render('storages/Show', [
+            // Список бакетов запрашивается у хранилища — грузим после открытия страницы
+            'buckets' => $canViewBuckets ? Inertia::defer(fn () => $this->buckets->list($storage->id)) : null,
+            'recentOperations' => $canViewBuckets ? Inertia::defer(fn () => $this->operations->recentFinished($storage->id, 5)) : [],
             'storage' => $this->storages->get($actor->id, $storage->id),
             'details' => $actor->can('viewConnection', $storage) ? $this->storages->details($storage->id) : null,
             'permissionOptions' => $this->catalog->options(PermissionScope::Storage),
@@ -76,6 +87,9 @@ final class StorageController extends Controller
                 'update' => $actor->can('update', $storage),
                 'delete' => $actor->can('delete', $storage),
                 'manageAccess' => $canManageAccess,
+                'viewBuckets' => $canViewBuckets,
+                'createBuckets' => $actor->can('use', [$storage, StoragePermission::CreateBuckets]),
+                'deleteBuckets' => $actor->can('use', [$storage, StoragePermission::DeleteBuckets]),
             ],
         ]);
     }
@@ -85,6 +99,7 @@ final class StorageController extends Controller
         return Inertia::render('storages/Form', [
             'storage' => $this->storages->details($storage->id),
             'providers' => $this->storages->presets(),
+            'capabilityOptions' => $this->capabilityOptions(),
         ]);
     }
 
@@ -109,5 +124,16 @@ final class StorageController extends Controller
     public function testConnection(StorageTestConnectionRequest $request): JsonResponse
     {
         return response()->json($this->storages->test($request->toData(), $request->existing()?->id));
+    }
+
+    /**
+     * @return list<array{value: string, label: string}>
+     */
+    private function capabilityOptions(): array
+    {
+        return array_map(
+            fn (StorageCapability $capability) => ['value' => $capability->value, 'label' => $capability->label()],
+            StorageCapability::cases(),
+        );
     }
 }

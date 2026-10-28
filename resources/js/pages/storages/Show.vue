@@ -2,12 +2,15 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import StorageController from '@/actions/App/Http/Controllers/Storage/StorageController';
+import BucketSection from '@/components/buckets/BucketSection.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import Heading from '@/components/Heading.vue';
 import StorageAccessManager from '@/components/storages/StorageAccessManager.vue';
 import { Button } from '@/components/ui/button';
 import { index } from '@/routes/storages';
 import type {
+    BucketList,
+    Operation,
     PermissionOption,
     PermissionTemplate,
     Storage,
@@ -29,7 +32,16 @@ const props = defineProps<{
     accesses: StorageAccess[];
     candidates: User[];
     permissionTemplates: PermissionTemplate[];
-    can: { update: boolean; delete: boolean; manageAccess: boolean };
+    buckets?: BucketList | null;
+    recentOperations?: Operation[];
+    can: {
+        update: boolean;
+        delete: boolean;
+        manageAccess: boolean;
+        viewBuckets: boolean;
+        createBuckets: boolean;
+        deleteBuckets: boolean;
+    };
 }>();
 
 function labels(permissions: number[]): string[] {
@@ -79,12 +91,13 @@ function destroy(): Promise<void> {
             </div>
         </div>
 
-        <section class="flex flex-col gap-2">
-            <Heading variant="small" :title="$t('Buckets')" />
-            <p class="text-sm text-muted-foreground">
-                {{ $t('Bucket management will appear in the next stage.') }}
-            </p>
-        </section>
+        <BucketSection
+            v-if="can.viewBuckets"
+            :storage="storage"
+            :buckets="buckets"
+            :recent-operations="recentOperations"
+            :can="can"
+        />
 
         <section class="flex flex-col gap-2">
             <Heading variant="small" :title="$t('My permissions')" />

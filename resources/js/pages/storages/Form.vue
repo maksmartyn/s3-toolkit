@@ -24,6 +24,8 @@ import { index } from '@/routes/storages';
 import type {
     ConnectionTestResult,
     ProviderPreset,
+    SelectOption,
+    StorageCapability,
     StorageDetails,
     StorageProvider,
 } from '@/types';
@@ -37,6 +39,7 @@ defineOptions({
 const props = defineProps<{
     storage: StorageDetails | null;
     providers: ProviderPreset[];
+    capabilityOptions: SelectOption<StorageCapability>[];
 }>();
 
 const isEdit = computed(() => props.storage !== null);
@@ -54,6 +57,9 @@ const form = reactive({
     access_key_id: '',
     secret_access_key: '',
     buckets: (props.storage?.buckets ?? []).join('\n'),
+    capabilities: [
+        ...(props.storage?.capabilities ?? []),
+    ] as StorageCapability[],
 });
 
 // Cloudflare R2: endpoint собирается из Account ID
@@ -75,6 +81,7 @@ function applyPreset(): void {
         : (current.defaultEndpoint ?? '');
     form.region = current.defaultRegion;
     form.use_path_style = current.defaultPathStyle;
+    form.capabilities = [...current.capabilities];
     accountId.value = '';
 }
 
@@ -101,6 +108,19 @@ const errors = ref<Record<string, string>>({});
 const processing = ref(false);
 const testing = ref(false);
 const testResult = ref<ConnectionTestResult | null>(null);
+
+function toggleCapability(
+    capability: StorageCapability,
+    checked: boolean | 'indeterminate',
+): void {
+    const next = form.capabilities.filter((item) => item !== capability);
+
+    if (checked === true) {
+        next.push(capability);
+    }
+
+    form.capabilities = next;
+}
 
 function payload() {
     return {
@@ -295,6 +315,33 @@ const isR2 = computed(
                 }}
             </p>
             <InputError :message="errors.buckets ?? errors['buckets.0']" />
+        </div>
+
+        <div class="grid gap-2">
+            <Label>{{ $t('Supported features') }}</Label>
+            <div class="grid gap-2 sm:grid-cols-3">
+                <Label
+                    v-for="option in capabilityOptions"
+                    :key="option.value"
+                    class="flex items-center gap-3 font-normal"
+                >
+                    <Checkbox
+                        :model-value="form.capabilities.includes(option.value)"
+                        :data-test="`capability-${option.value}`"
+                        @update:model-value="
+                            (checked) => toggleCapability(option.value, checked)
+                        "
+                    />
+                    <span>{{ option.label }}</span>
+                </Label>
+            </div>
+            <p class="text-sm text-muted-foreground">
+                {{
+                    $t(
+                        'Filled in from the provider defaults. Change if your storage supports a different set: unsupported features are hidden from the interface.',
+                    )
+                }}
+            </p>
         </div>
 
         <div

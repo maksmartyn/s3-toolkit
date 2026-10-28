@@ -30,6 +30,10 @@ final class AuditDetailsFormatter
             ]);
         }
 
+        if (is_array($details['storage'] ?? null)) {
+            $lines[] = $this->t('Storage: :name', ['name' => (string) ($details['storage']['name'] ?? '')]);
+        }
+
         foreach ((array) ($details['changes'] ?? []) as $field => $change) {
             $lines[] = __(':field: :from → :to', [
                 'field' => $this->fieldLabel((string) $field),
@@ -40,6 +44,10 @@ final class AuditDetailsFormatter
 
         if (is_array($details['permissions'] ?? null)) {
             array_push($lines, ...$this->permissionLines($details['permissions']));
+        }
+
+        foreach ((array) ($details['values'] ?? []) as $key => $value) {
+            $lines[] = $this->t(':field: :value', ['field' => $this->fieldLabel((string) $key), 'value' => $this->value($value)]);
         }
 
         foreach ((array) ($details['flags'] ?? []) as $flag => $value) {
@@ -97,6 +105,8 @@ final class AuditDetailsFormatter
             'use_path_style' => __('Path-style addressing'),
             'verify_ssl' => __('Verify SSL certificate'),
             'buckets' => __('Buckets'),
+            'capabilities' => __('Supported features'),
+            'deleted_objects' => __('Deleted objects and versions'),
             default => $field,
         };
     }
@@ -107,6 +117,7 @@ final class AuditDetailsFormatter
             'superadmin' => __('Superadmin'),
             'temporaryPassword' => __('Temporary password issued'),
             'credentialsChanged' => __('Access keys replaced'),
+            'objectLock' => __('Object Lock enabled'),
             default => $flag,
         };
     }

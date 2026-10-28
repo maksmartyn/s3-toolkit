@@ -25,4 +25,10 @@ final class AuditRecordData extends DTO
      * @var array<string, mixed>
      */
     public array $details = [];
+
+    /**
+     * Автор, если действие выполняется не в его запросе (например, фоновая операция, которую он запустил).
+     * null — автор берётся из текущей сессии.
+     */
+    public ?int $actorId = null;
 }

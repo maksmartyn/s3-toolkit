@@ -11,4 +11,9 @@ return [
         'timeout' => (float) env('STORAGE_TIMEOUT', 30),
     ],
 
+    'operations' => [
+        // Сколько секунд работает один шаг фоновой операции, прежде чем поставить в очередь продолжение
+        'step_seconds' => (float) env('OPERATION_STEP_SECONDS', 20),
+    ],
+
 ];

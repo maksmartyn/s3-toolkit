@@ -23,4 +23,7 @@ final class ProviderPresetData extends DTO
     public string $defaultRegion;
 
     public bool $defaultPathStyle;
+
+    /** @var list<string> функции, поддерживаемые по умолчанию */
+    public array $capabilities;
 }

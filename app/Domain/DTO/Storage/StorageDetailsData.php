@@ -21,6 +21,9 @@ final class StorageDetailsData extends DTO
 
     public string $providerLabel;
 
+    /** @var list<string> включённые функции (StorageCapability) */
+    public array $capabilities = [];
+
     public ?string $endpoint;
 
     public string $region;
