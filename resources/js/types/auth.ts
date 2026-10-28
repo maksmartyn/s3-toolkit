@@ -21,6 +21,7 @@ export type Auth = {
         viewUsers: boolean;
         viewPermissionTemplates: boolean;
         viewAuditLog: boolean;
+        viewStorages: boolean;
     };
 };
 

@@ -7,6 +7,7 @@ namespace App\Repositories\User;
 use App\Domain\DTO\User\UserFilterData;
 use App\Models\User;
 use App\Repositories\Contracts\RepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -33,6 +34,13 @@ interface UserRepositoryInterface extends RepositoryInterface
     public function paginateFiltered(UserFilterData $filter): LengthAwarePaginator;
 
     public function countActiveSuperadmins(?int $exceptId = null): int;
+
+    /**
+     * Неудалённые пользователи без флага суперадмина, кроме указанного.
+     *
+     * @return Collection<int, User>
+     */
+    public function grantCandidates(int $exceptId): Collection;
 
     public function emailTaken(string $email, ?int $exceptId = null): bool;
 

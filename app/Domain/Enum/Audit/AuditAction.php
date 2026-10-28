@@ -23,6 +23,11 @@ enum AuditAction: string
     case PermissionTemplateUpdated = 'permission_template.updated';
     case PermissionTemplateDeleted = 'permission_template.deleted';
 
+    case StorageCreated = 'storage.created';
+    case StorageUpdated = 'storage.updated';
+    case StorageDeleted = 'storage.deleted';
+    case StorageAccessChanged = 'storage.access_changed';
+
     public function subjectType(): AuditSubjectType
     {
         return match ($this) {
@@ -39,6 +44,11 @@ enum AuditAction: string
             self::PermissionTemplateCreated,
             self::PermissionTemplateUpdated,
             self::PermissionTemplateDeleted => AuditSubjectType::PermissionTemplate,
+
+            self::StorageCreated,
+            self::StorageUpdated,
+            self::StorageDeleted,
+            self::StorageAccessChanged => AuditSubjectType::Storage,
         };
     }
 
@@ -57,6 +67,10 @@ enum AuditAction: string
             self::PermissionTemplateCreated => __('Permission template created'),
             self::PermissionTemplateUpdated => __('Permission template updated'),
             self::PermissionTemplateDeleted => __('Permission template deleted'),
+            self::StorageCreated => __('Storage added'),
+            self::StorageUpdated => __('Storage updated'),
+            self::StorageDeleted => __('Storage deleted'),
+            self::StorageAccessChanged => __('Storage permissions changed'),
         };
     }
 }

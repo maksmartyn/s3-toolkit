@@ -4,14 +4,8 @@ import { computed, ref, watch } from 'vue';
 import UserPermissionController from '@/actions/App/Http/Controllers/User/UserPermissionController';
 import Heading from '@/components/Heading.vue';
 import PermissionCheckboxes from '@/components/permissions/PermissionCheckboxes.vue';
+import PermissionTemplatePicker from '@/components/permissions/PermissionTemplatePicker.vue';
 import { Button } from '@/components/ui/button';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import type { PermissionOption, PermissionTemplate, User } from '@/types';
 
@@ -23,7 +17,6 @@ const props = defineProps<{
 }>();
 
 const selected = ref<number[]>([...props.user.permissions]);
-const templateId = ref<string>('');
 const processing = ref(false);
 
 watch(
@@ -42,20 +35,6 @@ const granted = computed(() =>
         props.user.permissions.includes(option.value),
     ),
 );
-
-// Шаблон заменяет текущий выбор; сохранить нужно явно
-function applyTemplate(): void {
-    const template = props.templates.find(
-        (item) => String(item.id) === templateId.value,
-    );
-
-    if (template) {
-        const known = props.options.map((option) => option.value);
-        selected.value = template.permissions.filter((value) =>
-            known.includes(value),
-        );
-    }
-}
 
 function save(): void {
     router.put(
@@ -84,33 +63,11 @@ function save(): void {
 
         <template v-if="!user.isSuperadmin">
             <template v-if="canUpdate">
-                <div
-                    v-if="templates.length > 0"
-                    class="flex flex-wrap items-center gap-2"
-                >
-                    <Select v-model="templateId">
-                        <SelectTrigger class="w-64">
-                            <SelectValue
-                                :placeholder="$t('Choose a template')"
-                            />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem
-                                v-for="template in templates"
-                                :key="template.id"
-                                :value="String(template.id)"
-                                >{{ template.name }}</SelectItem
-                            >
-                        </SelectContent>
-                    </Select>
-                    <Button
-                        variant="outline"
-                        :disabled="!templateId"
-                        @click="applyTemplate"
-                    >
-                        {{ $t('Apply') }}
-                    </Button>
-                </div>
+                <PermissionTemplatePicker
+                    :templates="templates"
+                    :options="options"
+                    @apply="(permissions) => (selected = permissions)"
+                />
 
                 <PermissionCheckboxes
                     v-model="selected"

@@ -9,6 +9,7 @@ use App\Domain\Enum\User\UserStatus;
 use App\Models\User;
 use App\Repositories\Abstracts\BaseRepository;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 
@@ -63,6 +64,15 @@ final class UserRepository extends BaseRepository implements UserRepositoryInter
             ->where('is_active', true)
             ->when($exceptId !== null, fn (Builder $q) => $q->whereKeyNot($exceptId))
             ->count();
+    }
+
+    public function grantCandidates(int $exceptId): Collection
+    {
+        return $this->query()
+            ->where('is_superadmin', false)
+            ->whereKeyNot($exceptId)
+            ->orderBy('name')
+            ->get();
     }
 
     public function emailTaken(string $email, ?int $exceptId = null): bool

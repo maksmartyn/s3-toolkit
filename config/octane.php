@@ -192,6 +192,7 @@ return [
         'resources/**/*.php',
         'routes',
         'lang',
+        'public/build/manifest.json',
         'composer.lock',
         '.env',
     ],

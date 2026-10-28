@@ -23,6 +23,13 @@ final class AuditDetailsFormatter
 
         $lines = [];
 
+        if (is_array($details['user'] ?? null)) {
+            $lines[] = $this->t('User: :name (:email)', [
+                'name' => (string) ($details['user']['name'] ?? ''),
+                'email' => (string) ($details['user']['email'] ?? ''),
+            ]);
+        }
+
         foreach ((array) ($details['changes'] ?? []) as $field => $change) {
             $lines[] = __(':field: :from → :to', [
                 'field' => $this->fieldLabel((string) $field),
@@ -84,6 +91,12 @@ final class AuditDetailsFormatter
         return match ($field) {
             'name' => __('Name'),
             'email' => __('Email'),
+            'provider' => __('Provider'),
+            'endpoint' => __('Endpoint'),
+            'region' => __('Region'),
+            'use_path_style' => __('Path-style addressing'),
+            'verify_ssl' => __('Verify SSL certificate'),
+            'buckets' => __('Buckets'),
             default => $field,
         };
     }
@@ -93,6 +106,7 @@ final class AuditDetailsFormatter
         return match ($flag) {
             'superadmin' => __('Superadmin'),
             'temporaryPassword' => __('Temporary password issued'),
+            'credentialsChanged' => __('Access keys replaced'),
             default => $flag,
         };
     }
@@ -113,6 +127,7 @@ final class AuditDetailsFormatter
             $value === null || $value === '' => '—',
             is_bool($value) => $value ? __('Yes') : __('No'),
             is_scalar($value) => (string) $value,
+            is_array($value) && array_is_list($value) => implode(', ', array_map(strval(...), $value)),
             default => json_encode($value, JSON_UNESCAPED_UNICODE) ?: '',
         };
     }

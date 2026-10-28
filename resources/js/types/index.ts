@@ -4,3 +4,4 @@ export * from './ui';
 export * from './pagination';
 export * from './permissions';
 export * from './audit';
+export * from './storage';

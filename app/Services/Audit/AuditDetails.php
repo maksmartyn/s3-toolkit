@@ -59,6 +59,16 @@ final class AuditDetails
     }
 
     /**
+     * Пользователь, к которому относится действие над другим объектом (например, права на хранилище).
+     *
+     * @return array{user: array{id: int, name: string, email: string}}
+     */
+    public static function user(int $id, string $name, string $email): array
+    {
+        return ['user' => ['id' => $id, 'name' => $name, 'email' => $email]];
+    }
+
+    /**
      * @param  array<string, bool>  $flags
      * @return array{flags: array<string, bool>}
      */

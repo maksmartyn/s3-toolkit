@@ -1,10 +1,11 @@
 import { usePage } from '@inertiajs/vue3';
-import { KeyRound, LayoutGrid, ScrollText, Users } from '@lucide/vue';
+import { Database, KeyRound, LayoutGrid, ScrollText, Users } from '@lucide/vue';
 import { computed } from 'vue';
 import type { ComputedRef } from 'vue';
 import { dashboard } from '@/routes';
 import { index as auditLogIndex } from '@/routes/audit-log';
 import { index as permissionTemplatesIndex } from '@/routes/permission-templates';
+import { index as storagesIndex } from '@/routes/storages';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
 
@@ -19,6 +20,14 @@ export function useNavigation(): { mainNavItems: ComputedRef<NavItem[]> } {
         const items: NavItem[] = [
             { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
         ];
+
+        if (can.viewStorages) {
+            items.push({
+                title: 'Storages',
+                href: storagesIndex(),
+                icon: Database,
+            });
+        }
 
         if (can.viewUsers) {
             items.push({ title: 'Users', href: usersIndex(), icon: Users });

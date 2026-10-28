@@ -8,6 +8,10 @@ use App\Repositories\Audit\AuditLogRepository;
 use App\Repositories\Audit\AuditLogRepositoryInterface;
 use App\Repositories\Permission\PermissionTemplateRepository;
 use App\Repositories\Permission\PermissionTemplateRepositoryInterface;
+use App\Repositories\Storage\StorageAccessRepository;
+use App\Repositories\Storage\StorageAccessRepositoryInterface;
+use App\Repositories\Storage\StorageRepository;
+use App\Repositories\Storage\StorageRepositoryInterface;
 use App\Repositories\User\UserRepository;
 use App\Repositories\User\UserRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
@@ -23,5 +27,7 @@ class RepositoryServiceProvider extends ServiceProvider
         UserRepositoryInterface::class => UserRepository::class,
         PermissionTemplateRepositoryInterface::class => PermissionTemplateRepository::class,
         AuditLogRepositoryInterface::class => AuditLogRepository::class,
+        StorageRepositoryInterface::class => StorageRepository::class,
+        StorageAccessRepositoryInterface::class => StorageAccessRepository::class,
     ];
 }
