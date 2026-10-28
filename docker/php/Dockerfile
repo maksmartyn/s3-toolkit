@@ -47,3 +47,25 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
 USER app
+
+# Сборка: зависимости и фронтенд (Wayfinder при сборке вызывает artisan, поэтому нужен и PHP, и Node)
+FROM dev AS build
+
+USER root
+COPY --chown=app:app . /var/www/html
+USER app
+
+RUN composer install --no-interaction --no-progress --prefer-dist \
+    && npm ci --no-audit --no-fund \
+    && npm run build \
+    && composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader \
+    && rm -rf node_modules
+
+# Рабочий образ: код и собранный фронтенд, без Node и dev-зависимостей
+FROM base AS prod
+
+COPY --from=build --chown=app:app /var/www/html /var/www/html
+
+ENV APP_ENV=production \
+    APP_DEBUG=false \
+    MC_BINARY=/usr/local/bin/mc

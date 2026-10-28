@@ -101,7 +101,7 @@ describe('download and links', function () {
         $storage = Storage::factory()->create();
         fakeS3();
 
-        $this->actingAs(storageUser($storage, StoragePermission::SharePresignedLinks))
+        $this->actingAs(storageUser($storage, StoragePermission::SharePresignedLinks, StoragePermission::ViewObjects))
             ->postJson(objectsUrl('share', $storage), ['key' => 'a.txt', 'expires' => 3600])
             ->assertOk()
             ->assertJson(fn ($json) => $json->whereType('url', 'string')->whereType('expiresAt', 'string'));
@@ -160,7 +160,7 @@ describe('changes', function () {
             ->postJson(objectsUrl('transfer', $storage), $payload)
             ->assertForbidden();
 
-        $this->actingAs(storageUser($storage, StoragePermission::PutObjects, StoragePermission::DeleteObjects))
+        $this->actingAs(storageUser($storage, StoragePermission::PutObjects, StoragePermission::DeleteObjects, StoragePermission::ViewObjects))
             ->postJson(objectsUrl('transfer', $storage), $payload)
             ->assertOk();
 
@@ -222,4 +222,16 @@ describe('changes', function () {
             ->and($s3->handler->getLastCommand()['Key'])->toBe('docs/hello.txt')
             ->and(AuditLogEntry::query()->count())->toBe(0);
     });
+});
+
+it('needs ViewObjects to share links or copy objects', function () {
+    $storage = Storage::factory()->create();
+
+    $this->actingAs(storageUser($storage, StoragePermission::SharePresignedLinks))
+        ->postJson(objectsUrl('share', $storage), ['key' => 'a.txt', 'expires' => 60])
+        ->assertForbidden();
+
+    $this->actingAs(storageUser($storage, StoragePermission::PutObjects))
+        ->postJson(objectsUrl('transfer', $storage), ['keys' => ['a.txt'], 'target_bucket' => 'other', 'move' => false])
+        ->assertForbidden();
 });

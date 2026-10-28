@@ -18,6 +18,14 @@ final class ObjectShareRequest extends ObjectRequest
     }
 
     /**
+     * Ссылка даёт прочитать объект — без права на чтение её выдавать нельзя.
+     */
+    protected function additionalPermissions(): array
+    {
+        return [StoragePermission::ViewObjects];
+    }
+
+    /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array

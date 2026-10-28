@@ -58,11 +58,11 @@ final class ObjectController extends Controller
             'search' => $request->search(),
             'listing' => fn () => $this->browser->list($storage->id, $bucket, $request->prefix(), $request->search()),
             'operations' => fn () => $this->folderOperations($storage->id, $bucket),
-            // Бакеты для копирования и перемещения — только когда открывают диалог
-            'buckets' => Inertia::optional(fn () => array_map(
+            // Бакеты для копирования и перемещения — только когда открывают диалог и только тем, кто может копировать
+            'buckets' => Inertia::optional(fn () => $can(StoragePermission::PutObjects) ? array_map(
                 fn (BucketData $item) => $item->name,
                 $this->buckets->list($storage->id)->buckets,
-            )),
+            ) : [$bucket]),
             'partSize' => ObjectUploadService::PART_SIZE,
             'maxLinkSeconds' => ObjectBrowserService::MAX_LINK_SECONDS,
             'can' => [

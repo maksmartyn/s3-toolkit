@@ -1,0 +1,86 @@
+# Пример развёртывания на одном сервере. Перед запуском заполните .env (см. README.md), затем:
+#   docker compose -f compose.prod.yaml build
+#   docker compose -f compose.prod.yaml run --rm app php artisan migrate --force
+#   docker compose -f compose.prod.yaml up -d
+# Наружу открывайте только обратный прокси с TLS (см. README.md), а не порты контейнеров.
+name: s3-toolkit-prod
+
+x-php: &php
+    image: s3-toolkit-php:prod
+    build:
+        context: .
+        dockerfile: docker/php/Dockerfile
+        target: prod
+    env_file: .env
+    volumes:
+        - storage:/var/www/html/storage
+    depends_on:
+        mariadb:
+            condition: service_healthy
+        redis:
+            condition: service_healthy
+    restart: unless-stopped
+
+services:
+    app:
+        <<: *php
+        command: >-
+            sh -c "php artisan optimize &&
+            php artisan octane:start --server=roadrunner --host=0.0.0.0 --port=8000
+            --workers=${OCTANE_WORKERS:-2} --task-workers=0 --max-requests=500"
+        ports:
+            - '127.0.0.1:${APP_PORT:-8090}:8000'
+        mem_limit: 384m
+
+    horizon:
+        <<: *php
+        command: sh -c "php artisan optimize && php artisan horizon"
+        mem_limit: 256m
+
+    reverb:
+        <<: *php
+        command: sh -c "php artisan optimize && php artisan reverb:start --host=0.0.0.0 --port=8080"
+        ports:
+            - '127.0.0.1:${REVERB_FORWARD_PORT:-8091}:8080'
+        mem_limit: 128m
+
+    mariadb:
+        image: mariadb:11.8
+        command:
+            - --innodb-buffer-pool-size=128M
+            - --performance-schema=OFF
+            - --max-connections=50
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+        environment:
+            MARIADB_DATABASE: ${DB_DATABASE:-s3_toolkit}
+            MARIADB_USER: ${DB_USERNAME:-s3_toolkit}
+            MARIADB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+            MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+        volumes:
+            - mariadb:/var/lib/mysql
+        healthcheck:
+            test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+            interval: 5s
+            timeout: 5s
+            retries: 20
+        mem_limit: 512m
+        restart: unless-stopped
+
+    redis:
+        image: redis:7.4-alpine
+        command: redis-server --maxmemory 64mb --maxmemory-policy noeviction --appendonly yes
+        volumes:
+            - redis:/data
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 5s
+            timeout: 3s
+            retries: 20
+        mem_limit: 96m
+        restart: unless-stopped
+
+volumes:
+    storage:
+    mariadb:
+    redis:

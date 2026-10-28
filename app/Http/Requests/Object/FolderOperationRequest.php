@@ -15,7 +15,11 @@ final class FolderOperationRequest extends ObjectRequest
 {
     protected function additionalPermissions(): array
     {
-        return $this->input('type') === 'move' ? [StoragePermission::DeleteObjects] : [];
+        return match ($this->input('type')) {
+            'move' => [StoragePermission::ViewObjects, StoragePermission::DeleteObjects],
+            'copy' => [StoragePermission::ViewObjects],
+            default => [],
+        };
     }
 
     /**

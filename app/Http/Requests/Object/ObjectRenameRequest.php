@@ -16,7 +16,7 @@ final class ObjectRenameRequest extends ObjectRequest
 
     protected function additionalPermissions(): array
     {
-        return [StoragePermission::DeleteObjects];
+        return [StoragePermission::ViewObjects, StoragePermission::DeleteObjects];
     }
 
     /**

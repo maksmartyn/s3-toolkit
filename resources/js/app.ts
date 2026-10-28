@@ -7,8 +7,20 @@ import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 import { configureEcho } from '@laravel/echo-vue';
 
+// Адрес Reverb задаёт сервер (config/s3toolkit.php), чтобы собранный фронтенд не зависел от окружения
+const websocket = JSON.parse(
+    document.querySelector<HTMLMetaElement>('meta[name=websocket]')?.content ??
+        '{}',
+) as { key?: string; host?: string; port?: number; scheme?: string };
+
 configureEcho({
     broadcaster: 'reverb',
+    key: websocket.key,
+    wsHost: websocket.host,
+    wsPort: websocket.port,
+    wssPort: websocket.port,
+    forceTLS: websocket.scheme === 'https',
+    enabledTransports: ['ws', 'wss'],
 });
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';

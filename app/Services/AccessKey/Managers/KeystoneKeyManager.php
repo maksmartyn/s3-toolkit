@@ -39,6 +39,8 @@ final class KeystoneKeyManager implements AccessKeyManager
                 'name' => 'auth_url',
                 'label' => __('Keystone URL (Identity API v3)'),
                 'required' => true,
+                // Пароль уходит на этот адрес: при его смене пароль нужно ввести заново
+                'resetsSecrets' => true,
                 'placeholder' => 'https://cloud.api.selcloud.ru/identity/v3',
                 'hint' => __('Selectel: https://cloud.api.selcloud.ru/identity/v3, VK Cloud: https://infra.mail.ru:35357/v3'),
             ],

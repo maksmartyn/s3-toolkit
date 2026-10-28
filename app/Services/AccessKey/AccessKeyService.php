@@ -57,7 +57,7 @@ final readonly class AccessKeyService
             'configured' => AccessKeyManagerFactory::isConfigured($storage),
             'features' => $class::features(),
             'fields' => $withValues ? array_map(fn (array $field) => new AdminCredentialFieldData([
-                ...$field,
+                ...array_diff_key($field, ['resetsSecrets' => true]),
                 'value' => ($field['secret'] ?? false) ? null : (isset($credentials[$field['name']]) ? (string) $credentials[$field['name']] : null),
                 'isSet' => ($field['secret'] ?? false) && trim((string) ($credentials[$field['name']] ?? '')) !== '',
             ]), $class::fields()) : [],
@@ -77,12 +77,14 @@ final readonly class AccessKeyService
 
         $before = $storage->admin_credentials ?? [];
         $after = [];
+        $keptSecrets = false;
 
         foreach ($class::fields() as $field) {
             $value = trim((string) ($values[$field['name']] ?? ''));
 
             if ($value === '' && ($field['secret'] ?? false)) {
                 $value = (string) ($before[$field['name']] ?? '');
+                $keptSecrets = $keptSecrets || $value !== '';
             }
 
             if ($value !== '') {
@@ -101,6 +103,13 @@ final readonly class AccessKeyService
 
         if ($changed === []) {
             return;
+        }
+
+        // Иначе сохранённый секрет можно было бы отправить на подменённый адрес
+        foreach ($class::fields() as $field) {
+            if (($field['resetsSecrets'] ?? false) && in_array($field['name'], $changed, true) && $keptSecrets) {
+                throw new DomainException(__('After changing :field enter the secret fields again.', ['field' => $field['label']]));
+            }
         }
 
         $this->storages->update($storageId, ['admin_credentials' => $after === [] ? null : $after]);
@@ -146,6 +155,8 @@ final readonly class AccessKeyService
 
     public function setStatus(int $storageId, string $id, ?string $user, bool $active): void
     {
+        $this->ensureNotServiceKey($storageId, $id);
+
         $this->call($storageId, fn (AccessKeyManager $manager) => $manager->setStatus($id, $user, $active));
 
         $this->record(AuditAction::AccessKeyStatusChanged, $this->storages->findOrFail($storageId), AuditDetails::values(array_filter([
@@ -157,12 +168,39 @@ final readonly class AccessKeyService
 
     public function delete(int $storageId, string $id, ?string $user): void
     {
+        $this->ensureNotServiceKey($storageId, $id);
+
         $this->call($storageId, fn (AccessKeyManager $manager) => $manager->delete($id, $user));
 
         $this->record(AuditAction::AccessKeyDeleted, $this->storages->findOrFail($storageId), AuditDetails::values(array_filter([
             'access_key' => $id,
             'key_user' => $user,
         ])));
+    }
+
+    /**
+     * Ключами, которыми пользуется сам сервис (ключ хранилища и ключ управления), из интерфейса управлять нельзя:
+     * их отключение сломало бы работу с хранилищем для всех.
+     */
+    private function ensureNotServiceKey(int $storageId, string $id): void
+    {
+        $storage = $this->storages->findOrFail($storageId);
+        $protected = array_filter([
+            (string) $storage->access_key_id,
+            (string) ($storage->admin_credentials['access_key_id'] ?? ''),
+        ]);
+
+        $accessKeyId = $id;
+
+        // У Yandex идентификатор для операций отличается от access key ID
+        if (AccessKeyManagerFactory::managerClass($storage->provider) === YandexKeyManager::class) {
+            $key = array_find($this->call($storageId, fn (AccessKeyManager $manager) => $manager->list(null)), fn ($key) => $key->id === $id);
+            $accessKeyId = $key->accessKeyId ?? $id;
+        }
+
+        if (in_array($accessKeyId, $protected, true)) {
+            throw new DomainException(__('This key is used by the service itself and cannot be changed here.'));
+        }
     }
 
     /**

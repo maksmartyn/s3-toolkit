@@ -43,9 +43,12 @@ final class UserPolicy
         return $this->canManageUsers($actor);
     }
 
+    /**
+     * Себя меняют в профиле: там смена email требует пароль.
+     */
     public function update(User $actor, User $target): bool
     {
-        return $this->canManage($actor, $target) && ! $target->trashed();
+        return $this->canManageOther($actor, $target) && ! $target->trashed();
     }
 
     public function block(User $actor, User $target): bool
@@ -90,11 +93,18 @@ final class UserPolicy
     }
 
     /**
-     * Суперадминов может менять только суперадмин.
+     * Суперадминов может менять только суперадмин. Пользователя с базовыми правами, которых нет у действующего,
+     * менять нельзя: сброс пароля или смена email дали бы чужие права.
      */
     private function canManage(User $actor, User $target): bool
     {
-        return $this->canManageUsers($actor) && (! $target->is_superadmin || $actor->is_superadmin);
+        if ($actor->is_superadmin) {
+            return $this->canManageUsers($actor);
+        }
+
+        return $this->canManageUsers($actor)
+            && ! $target->is_superadmin
+            && $target->permissions->isSubsetOf($actor->permissions);
     }
 
     /**

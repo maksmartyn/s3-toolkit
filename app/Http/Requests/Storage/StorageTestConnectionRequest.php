@@ -41,7 +41,8 @@ final class StorageTestConnectionRequest extends FormRequest
     {
         $id = $this->input('storage_id');
 
-        return $id === null ? null : Storage::query()->findOrFail((int) $id);
+        // Несуществующий id — как новое хранилище: по ответу нельзя перебирать id
+        return $id === null ? null : Storage::query()->find((int) $id);
     }
 
     public function toData(): StorageSaveData

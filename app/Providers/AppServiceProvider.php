@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,13 @@ class AppServiceProvider extends ServiceProvider
 
         // Имена бакетов: точки разрешены, слэши — нет (в том числе старые имена с заглавными буквами и подчёркиванием)
         Route::pattern('bucket', '[A-Za-z0-9._-]+');
+
+        // За балансировщиком или обратным прокси: настоящий IP клиента (для журнала) и схема https
+        $proxies = config('s3toolkit.security.trusted_proxies');
+
+        if (is_string($proxies) && $proxies !== '') {
+            TrustProxies::at($proxies === '*' ? '*' : array_map(trim(...), explode(',', $proxies)));
+        }
     }
 
     /**

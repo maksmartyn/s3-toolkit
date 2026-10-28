@@ -17,7 +17,7 @@ interface AccessKeyManager
     /**
      * Поля учётных данных для управления (хранятся зашифрованными в storages.admin_credentials).
      *
-     * @return list<array{name: string, label: string, secret?: bool, multiline?: bool, required?: bool, hint?: string, placeholder?: string}>
+     * @return list<array{name: string, label: string, secret?: bool, multiline?: bool, required?: bool, hint?: string, placeholder?: string, resetsSecrets?: bool}>
      */
     public static function fields(): array;
 

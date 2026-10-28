@@ -18,6 +18,11 @@ final class ObjectRestoreRequest extends ObjectRequest
         return StoragePermission::PutObjects;
     }
 
+    protected function additionalPermissions(): array
+    {
+        return [StoragePermission::ViewObjects];
+    }
+
     protected function capability(): StorageCapability
     {
         return StorageCapability::Versioning;

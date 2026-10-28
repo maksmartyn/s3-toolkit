@@ -287,3 +287,28 @@ it('signs RSA-PSS so that openssl verifies it', function () {
 
     expect(trim($result->output()))->toBe('Verified OK');
 });
+
+it('does not let the service disable or delete its own key', function () {
+    $storage = Storage::factory()->create(['provider' => StorageProvider::Aws, 'endpoint' => null, 'access_key_id' => 'AKIASERVICEKEY000001']);
+    $iam = fakeIam();
+
+    $this->actingAs(superadmin())
+        ->deleteJson(keysUrl($storage, 'destroy'), ['id' => 'AKIASERVICEKEY000001'])
+        ->assertStatus(422);
+
+    expect($iam->count())->toBe(0);
+});
+
+it('requires secrets again after the Keystone URL changes', function () {
+    $storage = Storage::factory()->create(['provider' => StorageProvider::VkCloud, 'admin_credentials' => [
+        'auth_url' => 'https://infra.mail.ru:35357/v3', 'username' => 'u', 'password' => 'pw', 'domain' => 'users', 'project_id' => 'p',
+    ]]);
+
+    $this->actingAs(superadmin())
+        ->put(keysUrl($storage, 'credentials'), ['credentials' => [
+            'auth_url' => 'https://evil.example.com/v3', 'username' => 'u', 'password' => '', 'domain' => 'users', 'project_id' => 'p',
+        ]])
+        ->assertInertiaFlash('toast.type', 'error');
+
+    expect($storage->fresh()->admin_credentials['auth_url'])->toBe('https://infra.mail.ru:35357/v3');
+});

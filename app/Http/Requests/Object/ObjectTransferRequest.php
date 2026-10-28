@@ -19,7 +19,9 @@ final class ObjectTransferRequest extends ObjectRequest
 
     protected function additionalPermissions(): array
     {
-        return $this->boolean('move') ? [StoragePermission::DeleteObjects] : [];
+        return $this->boolean('move')
+            ? [StoragePermission::ViewObjects, StoragePermission::DeleteObjects]
+            : [StoragePermission::ViewObjects];
     }
 
     /**

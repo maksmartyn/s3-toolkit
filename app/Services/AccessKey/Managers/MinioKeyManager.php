@@ -69,7 +69,8 @@ final readonly class MinioKeyManager implements AccessKeyManager
             $this->run(['admin', 'user', 'list', '{alias}']),
         );
 
-        return array_values(array_unique(array_filter([$this->accessKeyId, ...$users])));
+        // Ключ администратора в списке не показываем: его ключи — это «учётная запись управления» по умолчанию
+        return array_values(array_unique(array_filter($users, fn (string $user) => $user !== '' && $user !== $this->accessKeyId)));
     }
 
     public function list(?string $user): array

@@ -57,9 +57,18 @@ describe('access', function () {
 
         $this->get(route('users.edit', $manager))
             ->assertInertia(fn (Assert $page) => $page
-                ->where('can.update', true)
+                ->where('can.update', false)
                 ->where('can.block', false)
                 ->where('can.delete', false));
+    });
+
+    it('does not let managers take over users with permissions they lack', function () {
+        $admin = userWith(SystemPermission::ManageUsers, SystemPermission::GrantSystemPermissions);
+
+        $this->actingAs(userWith(SystemPermission::ManageUsers));
+
+        $this->post(route('users.reset-password', $admin))->assertForbidden();
+        $this->put(route('users.update', $admin), ['name' => 'x', 'email' => 'mine@example.com'])->assertForbidden();
     });
 });
 
