@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\AuditLogEntry;
 use App\Models\PermissionTemplate;
 use App\Models\User;
 use App\Services\User\UserMapper;
@@ -38,6 +39,7 @@ class HandleInertiaRequests extends Middleware
                 'can' => [
                     'viewUsers' => $user instanceof User && $user->can('viewAny', User::class),
                     'viewPermissionTemplates' => $user instanceof User && $user->can('viewAny', PermissionTemplate::class),
+                    'viewAuditLog' => $user instanceof User && $user->can('viewAny', AuditLogEntry::class),
                 ],
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

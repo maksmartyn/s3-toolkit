@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head, router, usePage } from '@inertiajs/vue3';
+import { Form, Head, Link, router, usePage } from '@inertiajs/vue3';
 import { trans } from 'laravel-vue-i18n';
 import UserController from '@/actions/App/Http/Controllers/User/UserController';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
@@ -12,6 +12,7 @@ import TemporaryPasswordDialog from '@/components/users/TemporaryPasswordDialog.
 import UserSystemPermissions from '@/components/users/UserSystemPermissions.vue';
 import UserStatusBadge from '@/components/users/UserStatusBadge.vue';
 import { formatDateTime } from '@/lib/format';
+import { index as auditLogIndex } from '@/routes/audit-log';
 import { index } from '@/routes/users';
 import type { PermissionOption, PermissionTemplate, User } from '@/types';
 
@@ -36,7 +37,8 @@ const props = defineProps<{
     };
 }>();
 
-const locale = usePage().props.locale;
+const page = usePage();
+const locale = page.props.locale;
 
 function visit(route: { url: string; method: 'post' | 'delete' }) {
     return new Promise<void>((resolve) => {
@@ -64,6 +66,12 @@ const destroy = () => visit(UserController.destroy(props.user.id));
         <div class="flex flex-col gap-2">
             <Heading :title="user.name" :description="user.email" />
             <UserStatusBadge :user="user" />
+            <Link
+                v-if="page.props.auth.can.viewAuditLog"
+                :href="auditLogIndex({ query: { user_id: user.id } })"
+                class="self-start text-sm text-muted-foreground underline-offset-4 hover:underline"
+                >{{ $t('Action history') }}</Link
+            >
             <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
                 <dt class="text-muted-foreground">{{ $t('Created') }}</dt>
                 <dd>{{ formatDateTime(user.createdAt, locale) }}</dd>

@@ -1,8 +1,9 @@
 import { usePage } from '@inertiajs/vue3';
-import { KeyRound, LayoutGrid, Users } from '@lucide/vue';
+import { KeyRound, LayoutGrid, ScrollText, Users } from '@lucide/vue';
 import { computed } from 'vue';
 import type { ComputedRef } from 'vue';
 import { dashboard } from '@/routes';
+import { index as auditLogIndex } from '@/routes/audit-log';
 import { index as permissionTemplatesIndex } from '@/routes/permission-templates';
 import { index as usersIndex } from '@/routes/users';
 import type { NavItem } from '@/types';
@@ -28,6 +29,14 @@ export function useNavigation(): { mainNavItems: ComputedRef<NavItem[]> } {
                 title: 'Permission templates',
                 href: permissionTemplatesIndex(),
                 icon: KeyRound,
+            });
+        }
+
+        if (can.viewAuditLog) {
+            items.push({
+                title: 'Audit log',
+                href: auditLogIndex(),
+                icon: ScrollText,
             });
         }
 

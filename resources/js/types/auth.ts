@@ -20,6 +20,7 @@ export type Auth = {
     can: {
         viewUsers: boolean;
         viewPermissionTemplates: boolean;
+        viewAuditLog: boolean;
     };
 };
 

@@ -17,3 +17,4 @@ Route::middleware('auth')->group(function () {
 require __DIR__.'/settings.php';
 require __DIR__.'/users.php';
 require __DIR__.'/permissions.php';
+require __DIR__.'/audit.php';

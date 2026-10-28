@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace App\Services\Permission;
 
+use App\Domain\DTO\Audit\AuditRecordData;
 use App\Domain\DTO\Permission\PermissionTemplateData;
 use App\Domain\DTO\Permission\PermissionTemplateSaveData;
+use App\Domain\Enum\Audit\AuditAction;
 use App\Domain\Enum\Permission\PermissionScope;
 use App\Domain\ValueObject\Permission\PermissionMask;
 use App\Exceptions\DomainException;
 use App\Models\PermissionTemplate;
 use App\Repositories\Permission\PermissionTemplateRepositoryInterface;
+use App\Services\Audit\AuditDetails;
+use App\Services\Audit\AuditService;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
@@ -19,7 +24,10 @@ use InvalidArgumentException;
  */
 final readonly class PermissionTemplateService
 {
-    public function __construct(private PermissionTemplateRepositoryInterface $templates) {}
+    public function __construct(
+        private PermissionTemplateRepositoryInterface $templates,
+        private AuditService $audit,
+    ) {}
 
     /**
      * @return list<PermissionTemplateData>
@@ -39,11 +47,21 @@ final readonly class PermissionTemplateService
         $this->ensureMaskMatches($scope, $data);
         $this->ensureNameAvailable($scope, $data->name);
 
-        return $this->toData($this->templates->create([
-            'name' => $data->name,
-            'scope' => $scope,
-            'permissions' => $data->permissions->value,
-        ]));
+        return DB::transaction(function () use ($scope, $data): PermissionTemplateData {
+            $template = $this->templates->create([
+                'name' => $data->name,
+                'scope' => $scope,
+                'permissions' => $data->permissions->value,
+            ]);
+
+            $this->record(AuditAction::PermissionTemplateCreated, $template, AuditDetails::permissions(
+                $scope,
+                PermissionMask::none($scope->enum()),
+                $data->permissions,
+            ));
+
+            return $this->toData($template);
+        });
     }
 
     public function update(int $id, PermissionTemplateSaveData $data): PermissionTemplateData
@@ -53,15 +71,47 @@ final readonly class PermissionTemplateService
         $this->ensureMaskMatches($template->scope, $data);
         $this->ensureNameAvailable($template->scope, $data->name, $id);
 
-        return $this->toData($this->templates->update($id, [
-            'name' => $data->name,
-            'permissions' => $data->permissions->value,
-        ]));
+        return DB::transaction(function () use ($id, $template, $data): PermissionTemplateData {
+            $before = PermissionMask::fromInt($template->scope->enum(), $template->permissions);
+            $details = AuditDetails::changes(['name' => $template->name], ['name' => $data->name]);
+
+            if (! $before->equals($data->permissions)) {
+                $details += AuditDetails::permissions($template->scope, $before, $data->permissions);
+            }
+
+            $updated = $this->templates->update($id, [
+                'name' => $data->name,
+                'permissions' => $data->permissions->value,
+            ]);
+
+            if ($details !== []) {
+                $this->record(AuditAction::PermissionTemplateUpdated, $updated, $details);
+            }
+
+            return $this->toData($updated);
+        });
     }
 
     public function delete(int $id): void
     {
-        $this->templates->delete($id);
+        DB::transaction(function () use ($id): void {
+            $template = $this->templates->findOrFail($id);
+            $this->templates->delete($id);
+            $this->record(AuditAction::PermissionTemplateDeleted, $template);
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $details
+     */
+    private function record(AuditAction $action, PermissionTemplate $template, array $details = []): void
+    {
+        $this->audit->record(new AuditRecordData([
+            'action' => $action,
+            'subjectId' => $template->id,
+            'subjectLabel' => $template->name,
+            'details' => $details,
+        ]));
     }
 
     private function toData(PermissionTemplate $template): PermissionTemplateData

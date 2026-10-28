@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Repositories\Audit\AuditLogRepository;
+use App\Repositories\Audit\AuditLogRepositoryInterface;
 use App\Repositories\Permission\PermissionTemplateRepository;
 use App\Repositories\Permission\PermissionTemplateRepositoryInterface;
 use App\Repositories\User\UserRepository;
@@ -20,5 +22,6 @@ class RepositoryServiceProvider extends ServiceProvider
     public array $singletons = [
         UserRepositoryInterface::class => UserRepository::class,
         PermissionTemplateRepositoryInterface::class => PermissionTemplateRepository::class,
+        AuditLogRepositoryInterface::class => AuditLogRepository::class,
     ];
 }
