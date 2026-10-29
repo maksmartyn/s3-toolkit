@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from 'vue';
+import { useId } from 'vue';
 
 defineOptions({
     inheritAttrs: false,
@@ -10,20 +11,71 @@ type Props = {
 };
 
 defineProps<Props>();
+
+// Уникальный id маски: иконка встречается на странице несколько раз
+const maskId = `app-logo-${useId().replace(/\W/g, '')}`;
 </script>
 
 <template>
     <svg
         xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 40 42"
+        viewBox="0 0 32 32"
         :class="className"
         v-bind="$attrs"
     >
-        <path
+        <mask
+            :id="maskId"
+            maskUnits="userSpaceOnUse"
+            x="0"
+            y="0"
+            width="32"
+            height="32"
+        >
+            <path
+                d="M2 6L5.2 26.5C5.5 29 26.5 29 26.8 26.5L30 6Z"
+                fill="white"
+            />
+            <ellipse cx="16" cy="6" rx="14" ry="4.5" fill="white" />
+            <ellipse cx="16" cy="6" rx="11.6" ry="2.8" fill="black" />
+
+            <g
+                transform="translate(16 18) rotate(45) scale(0.9) translate(-16 -16)"
+                stroke-linejoin="round"
+            >
+                <g fill="black" stroke="black" stroke-width="2.8">
+                    <rect x="14.4" y="10" width="3.2" height="18" rx="1.6" />
+                    <path
+                        d="M14.6 4.04V8.2H17.4V4.04A4.2 4.2 0 1 1 14.6 4.04Z"
+                    />
+                </g>
+                <g fill="white">
+                    <rect x="14.4" y="10" width="3.2" height="18" rx="1.6" />
+                    <path
+                        d="M14.6 4.04V8.2H17.4V4.04A4.2 4.2 0 1 1 14.6 4.04Z"
+                    />
+                </g>
+            </g>
+            <g
+                transform="translate(16 18) rotate(-45) scale(0.9) translate(-16 -16)"
+                stroke-linejoin="round"
+            >
+                <g fill="black" stroke="black" stroke-width="2.8">
+                    <rect x="13.8" y="3" width="4.4" height="10" rx="1.8" />
+                    <rect x="15.2" y="12" width="1.6" height="13" />
+                    <path d="M15.2 24H16.8L16.6 28H15.4Z" />
+                </g>
+                <g fill="white">
+                    <rect x="13.8" y="3" width="4.4" height="10" rx="1.8" />
+                    <rect x="15.2" y="12" width="1.6" height="13" />
+                    <path d="M15.2 24H16.8L16.6 28H15.4Z" />
+                </g>
+            </g>
+        </mask>
+        <rect
+            width="32"
+            height="32"
             fill="currentColor"
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            d="M17.2 5.633 8.6.855 0 5.633v26.51l16.2 9 16.2-9v-8.442l7.6-4.223V9.856l-8.6-4.777-8.6 4.777V18.3l-5.6 3.111V5.633ZM38 18.301l-5.6 3.11v-6.157l5.6-3.11V18.3Zm-1.06-7.856-5.54 3.078-5.54-3.079 5.54-3.078 5.54 3.079ZM24.8 18.3v-6.157l5.6 3.111v6.158L24.8 18.3Zm-1 1.732 5.54 3.078-13.14 7.302-5.54-3.078 13.14-7.3v-.002Zm-16.2 7.89 7.6 4.222V38.3L2 30.966V7.92l5.6 3.111v16.892ZM8.6 9.3 3.06 6.222 8.6 3.143l5.54 3.08L8.6 9.3Zm21.8 15.51-13.2 7.334V38.3l13.2-7.334v-6.156ZM9.6 11.034l5.6-3.11v14.6l-5.6 3.11v-14.6Z"
+            :mask="`url(#${maskId})`"
         />
     </svg>
 </template>
