@@ -198,6 +198,9 @@ server {
 | `STORAGE_ALLOW_PRIVATE_ENDPOINTS` | Разрешать endpoint во внутренних сетях (по умолчанию `true`, это нужно для MinIO в локальной сети). Если сервисом пользуются люди, которым нельзя давать доступ во внутреннюю сеть, поставьте `false`: иначе через endpoint хранилища можно обращаться к внутренним адресам (SSRF) |
 | `STORAGE_CONNECT_TIMEOUT`, `STORAGE_TIMEOUT` | Таймауты запросов к хранилищам, секунды |
 | `OPERATION_STEP_SECONDS` | Длительность одного шага фоновой операции (по умолчанию 20 с) |
+| `OPERATION_JOB_TIMEOUT` | Таймаут одной задачи фоновой операции (по умолчанию 150 с). Должен быть больше шага плюс двух таймаутов запроса к хранилищу (`STORAGE_CONNECT_TIMEOUT` + `STORAGE_TIMEOUT`) и меньше `REDIS_QUEUE_RETRY_AFTER` (по умолчанию 300 с). Если увеличиваете `STORAGE_TIMEOUT`, увеличьте и эти значения |
+| `OPERATION_MAX_TIMEOUTS` | Сколько раз подряд продолжать операцию после таймаута шага (по умолчанию 3) |
+| `OPERATION_STALE_MINUTES` | Через сколько минут без прогресса операция считается прерванной (по умолчанию 30) |
 | `SECURITY_CSP`, `SECURITY_HSTS`, `CSP_CONNECT_SRC` | Content-Security-Policy, HSTS и дополнительные адреса для `connect-src` |
 | `MC_BINARY`, `MC_TIMEOUT` | Клиент MinIO для управления ключами MinIO |
 | `OCTANE_WORKERS` | Число воркеров Octane в `compose.prod.yaml` |

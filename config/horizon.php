@@ -207,7 +207,8 @@ return [
             'maxJobs' => 0,
             'memory' => 128,
             'tries' => 1,
-            'timeout' => 60,
+            // Как у задач фоновых операций (s3toolkit.operations.job_timeout)
+            'timeout' => (int) env('OPERATION_JOB_TIMEOUT', 150),
             'nice' => 0,
         ],
     ],

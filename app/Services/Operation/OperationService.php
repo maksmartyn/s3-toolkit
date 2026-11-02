@@ -80,7 +80,8 @@ final readonly class OperationService
         $this->broadcast($this->operations->update($id, [
             'status' => OperationStatus::Running,
             'processed' => $processed,
-            'state' => $state,
+            // Шаг продвинулся — счётчик таймаутов подряд обнуляется
+            'state' => array_diff_key($state, ['timeouts' => true]),
             'started_at' => $operation->started_at ?? now(),
         ]));
     }
@@ -111,11 +112,41 @@ final readonly class OperationService
     }
 
     /**
+     * Шаг задачи не завершился. true — продолжить операцию новой задачей, false — операция завершена (неудачей).
+     */
+    public function stepFailed(int $id, bool $timedOut): bool
+    {
+        $operation = $this->findActive($id);
+
+        if ($operation === null) {
+            return false;
+        }
+
+        $state = $operation->state ?? [];
+        $timeouts = (int) ($state['timeouts'] ?? 0) + 1;
+
+        if ($timedOut && $timeouts <= (int) config('s3toolkit.operations.max_timeouts', 3)) {
+            Log::warning('Operation step timed out, continuing', ['operation' => $id, 'timeouts' => $timeouts]);
+            $this->operations->update($id, ['state' => [...$state, 'timeouts' => $timeouts]]);
+
+            return true;
+        }
+
+        $this->fail($id, $timedOut
+            ? __('The storage responds too slowly: a step of the operation did not finish in :seconds seconds several times in a row. Try again later.', [
+                'seconds' => (string) config('s3toolkit.operations.job_timeout'),
+            ])
+            : __('The operation was interrupted by an unexpected error.'));
+
+        return false;
+    }
+
+    /**
      * @return list<OperationData>
      */
     public function activeFor(int $storageId): array
     {
-        return array_values($this->operations->activeFor($storageId)->map($this->toData(...))->all());
+        return array_map($this->toData(...), $this->active($storageId));
     }
 
     /**
@@ -155,7 +186,7 @@ final readonly class OperationService
     {
         $bucketLevel = fn (OperationType $t): bool => in_array($t, [OperationType::BucketDelete, OperationType::BucketStats], true);
 
-        foreach ($this->operations->activeFor($storageId) as $active) {
+        foreach ($this->active($storageId) as $active) {
             if ($active->bucket !== $bucket) {
                 continue;
             }
@@ -166,6 +197,31 @@ final readonly class OperationService
                 throw new DomainException(__('Another operation is already running for this bucket.'));
             }
         }
+    }
+
+    /**
+     * Активные операции хранилища. Те, что давно не продвигались, помечаются прерванными:
+     * их задачу убили (нехватка памяти, перезапуск контейнера), и иначе они навсегда заняли бы бакет.
+     *
+     * @return list<BackgroundOperation>
+     */
+    private function active(int $storageId): array
+    {
+        $minutes = (int) config('s3toolkit.operations.stale_minutes', 30);
+        $active = [];
+
+        foreach ($this->operations->activeFor($storageId) as $operation) {
+            if ($operation->updated_at !== null && $operation->updated_at->lt(now()->subMinutes($minutes))) {
+                Log::warning('Stale operation marked as failed', ['operation' => $operation->id]);
+                $this->fail($operation->id, __('The operation was interrupted: no progress for :minutes minutes.', ['minutes' => (string) $minutes]));
+
+                continue;
+            }
+
+            $active[] = $operation;
+        }
+
+        return $active;
     }
 
     /**

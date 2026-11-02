@@ -13,6 +13,9 @@ use Aws\S3\S3Client;
  */
 class S3ClientFactory
 {
+    /** Повторов запроса при сетевой ошибке; учитывается в таймауте фоновых задач */
+    public const int RETRIES = 1;
+
     public function __construct(
         private readonly EndpointGuard $guard,
         private readonly float $connectTimeout,
@@ -60,7 +63,7 @@ class S3ClientFactory
                 'connect_timeout' => $this->connectTimeout,
                 'timeout' => $this->timeout,
             ],
-            'retries' => 1,
+            'retries' => self::RETRIES,
             // Новые версии SDK по умолчанию добавляют CRC32-суммы, которые многие S3-совместимые хранилища не принимают
             'request_checksum_calculation' => 'when_required',
             'response_checksum_validation' => 'when_required',
