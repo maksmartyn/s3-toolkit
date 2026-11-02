@@ -50,3 +50,6 @@ yarn-error.log
 /compose.override.yml
 /docker-compose.override.yaml
 /docker-compose.override.yml
+
+# Данные MCP-сервера Serena
+/.serena/
