@@ -133,8 +133,12 @@ final readonly class AccessKeyService
                 'user' => $user,
             ]);
         } catch (DomainException $e) {
+            report_if(config('app.debug'), $e);
+
             return new AccessKeyOverviewData(['error' => $e->getMessage(), 'user' => $user]);
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
+
             return new AccessKeyOverviewData(['error' => $this->message($e), 'user' => $user]);
         }
     }
@@ -218,6 +222,7 @@ final readonly class AccessKeyService
         } catch (DomainException $e) {
             throw $e;
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
             throw new DomainException(__('The provider rejected the request: :error', ['error' => $this->message($e)]), previous: $e);
         }
     }

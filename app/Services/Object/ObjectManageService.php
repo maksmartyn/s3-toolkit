@@ -305,6 +305,7 @@ final readonly class ObjectManageService
         } catch (DomainException $e) {
             throw $e;
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
             throw new DomainException(__('The storage rejected the change: :error', ['error' => $this->errors->message($e)]), previous: $e);
         }
     }

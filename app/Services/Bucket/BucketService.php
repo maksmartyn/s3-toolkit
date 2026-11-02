@@ -48,8 +48,12 @@ final readonly class BucketService
                 ? array_map(fn (string $name) => ['name' => $name, 'createdAt' => null], $gateway->fixedBuckets)
                 : $gateway->listBuckets();
         } catch (DomainException $e) {
+            report_if(config('app.debug'), $e);
+
             return new BucketListData(['error' => $e->getMessage()]);
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
+
             return new BucketListData(['error' => $this->errors->message($e)]);
         }
 
@@ -77,6 +81,7 @@ final readonly class BucketService
         try {
             $gateway->createBucket($data->name, $data->objectLock);
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
             throw new DomainException(__('Could not create the bucket: :error', ['error' => $this->errors->message($e)]), previous: $e);
         }
 

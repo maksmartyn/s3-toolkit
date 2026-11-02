@@ -234,6 +234,7 @@ final readonly class OperationService
         try {
             $this->events->dispatch(new OperationUpdated($data));
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
             Log::warning('Operation broadcast failed', ['operation' => $operation->id, 'error' => $e->getMessage()]);
         }
 

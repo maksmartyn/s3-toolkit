@@ -56,8 +56,12 @@ final readonly class ObjectBrowserService
         try {
             $page = $this->gateways->forStorage($storageId)->listFolder($bucket, $prefix.$search, $token, self::PAGE_SIZE);
         } catch (DomainException $e) {
+            report_if(config('app.debug'), $e);
+
             return new ObjectListData(['prefix' => $prefix, 'error' => $e->getMessage()]);
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
+
             return new ObjectListData(['prefix' => $prefix, 'error' => $this->errors->message($e)]);
         }
 
@@ -82,7 +86,8 @@ final readonly class ObjectBrowserService
             if ($gateway->supports(StorageCapability::Tagging)) {
                 try {
                     $tags = array_map(fn (array $tag) => new BucketTagData($tag), $gateway->getObjectTags($bucket, $object->key, $object->versionId));
-                } catch (Throwable) {
+                } catch (Throwable $e) {
+                    report_if(config('app.debug'), $e);
                     // Нет прав на теги или хранилище их не отдаёт — показываем остальное
                     $tags = null;
                 }
@@ -206,6 +211,7 @@ final readonly class ObjectBrowserService
         } catch (DomainException $e) {
             throw $e;
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
             throw new DomainException($this->errors->message($e), previous: $e);
         }
     }
@@ -218,8 +224,12 @@ final readonly class ObjectBrowserService
         try {
             return new BucketSectionData(['data' => $read($this->gateways->forStorage($storageId))]);
         } catch (DomainException $e) {
+            report_if(config('app.debug'), $e);
+
             return new BucketSectionData(['error' => $e->getMessage()]);
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
+
             return new BucketSectionData(['error' => $this->errors->message($e)]);
         }
     }

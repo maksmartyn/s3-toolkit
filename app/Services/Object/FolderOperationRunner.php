@@ -91,6 +91,7 @@ final readonly class FolderOperationRunner implements OperationRunner
 
             return false;
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
             Log::warning('Folder operation failed', ['operation' => $operationId, 'error' => $e->getMessage()]);
             $this->operations->fail($operationId, $this->errors->message($e));
 

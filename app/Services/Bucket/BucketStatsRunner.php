@@ -76,6 +76,7 @@ final readonly class BucketStatsRunner implements OperationRunner
 
             return false;
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
             Log::warning('Bucket stats failed', ['operation' => $operationId, 'error' => $e->getMessage()]);
             $this->operations->fail($operationId, $this->errors->message($e));
 
@@ -111,6 +112,8 @@ final readonly class BucketStatsRunner implements OperationRunner
             if ($e->getAwsErrorCode() !== 'NotImplemented') {
                 throw $e;
             }
+
+            report_if(config('app.debug'), $e);
 
             // Версионирование отмечено, но не поддерживается — считаем только текущие объекты с начала
             $state = [...$state, 'versions' => false, 'objects' => 0, 'size' => 0];

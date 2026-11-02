@@ -41,7 +41,8 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
 
-        $exceptions->dontReport(DomainException::class);
+        // Понятные пользователю ошибки в лог не пишем; в режиме отладки пишем всё
+        $exceptions->dontReportWhen(fn (Throwable $e) => $e instanceof DomainException && ! config('app.debug'));
 
         $exceptions->render(function (DomainException $e, Request $request) {
             if ($request->expectsJson()) {

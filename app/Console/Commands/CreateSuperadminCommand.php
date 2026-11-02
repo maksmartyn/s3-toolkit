@@ -51,6 +51,7 @@ final class CreateSuperadminCommand extends Command
         try {
             $result = $users->createSuperadmin(new UserCreateData($validator->validated()));
         } catch (DomainException $e) {
+            report_if(config('app.debug'), $e);
             $this->components->error($e->getMessage());
 
             return self::FAILURE;

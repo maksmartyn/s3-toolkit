@@ -83,7 +83,8 @@ final readonly class MinioKeyManager implements AccessKeyManager
 
             try {
                 $info = $this->run(['admin', 'user', 'svcacct', 'info', '{alias}', $accessKey])[0] ?? [];
-            } catch (Throwable) {
+            } catch (Throwable $e) {
+                report_if(config('app.debug'), $e);
                 $info = [];
             }
 

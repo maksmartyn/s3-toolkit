@@ -244,6 +244,8 @@ final readonly class StorageGateway
             $tags = (array) ($this->client->getBucketTagging(['Bucket' => $bucket])->get('TagSet') ?? []);
         } catch (AwsException $e) {
             if ($this->isMissing($e, 'NoSuchTagSet', 'NoSuchTagSetError')) {
+                report_if(config('app.debug'), $e);
+
                 return [];
             }
 
@@ -281,6 +283,8 @@ final readonly class StorageGateway
             $policy = $this->client->getBucketPolicy(['Bucket' => $bucket])->get('Policy');
         } catch (AwsException $e) {
             if ($this->isMissing($e, 'NoSuchBucketPolicy')) {
+                report_if(config('app.debug'), $e);
+
                 return null;
             }
 
@@ -313,6 +317,8 @@ final readonly class StorageGateway
             return array_values((array) ($this->client->getBucketCors(['Bucket' => $bucket])->get('CORSRules') ?? []));
         } catch (AwsException $e) {
             if ($this->isMissing($e, 'NoSuchCORSConfiguration')) {
+                report_if(config('app.debug'), $e);
+
                 return [];
             }
 
@@ -348,6 +354,8 @@ final readonly class StorageGateway
             $rules = (array) ($this->client->getBucketLifecycleConfiguration(['Bucket' => $bucket])->get('Rules') ?? []);
         } catch (AwsException $e) {
             if ($this->isMissing($e, 'NoSuchLifecycleConfiguration')) {
+                report_if(config('app.debug'), $e);
+
                 return [];
             }
 
@@ -421,6 +429,8 @@ final readonly class StorageGateway
             $result = $this->client->getBucketWebsite(['Bucket' => $bucket])->toArray();
         } catch (AwsException $e) {
             if ($this->isMissing($e, 'NoSuchWebsiteConfiguration')) {
+                report_if(config('app.debug'), $e);
+
                 return null;
             }
 
@@ -456,6 +466,8 @@ final readonly class StorageGateway
             $configuration = (array) ($this->client->getObjectLockConfiguration(['Bucket' => $bucket])->get('ObjectLockConfiguration') ?? []);
         } catch (AwsException $e) {
             if ($this->isMissing($e, 'ObjectLockConfigurationNotFoundError')) {
+                report_if(config('app.debug'), $e);
+
                 return ['enabled' => false, 'mode' => null, 'days' => null, 'years' => null];
             }
 
@@ -796,6 +808,8 @@ final readonly class StorageGateway
                 throw $e;
             }
 
+            report_if(config('app.debug'), $e);
+
             $retention = [];
         }
 
@@ -805,6 +819,8 @@ final readonly class StorageGateway
             if (! $this->isMissing($e, 'NoSuchObjectLockConfiguration', 'ObjectLockConfigurationNotFoundError', 'InvalidRequest')) {
                 throw $e;
             }
+
+            report_if(config('app.debug'), $e);
 
             $hold = [];
         }

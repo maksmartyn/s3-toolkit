@@ -416,8 +416,12 @@ final readonly class BucketSettingsService
         try {
             return new BucketSectionData(['data' => $read($this->gateways->forStorage($storageId))]);
         } catch (DomainException $e) {
+            report_if(config('app.debug'), $e);
+
             return new BucketSectionData(['error' => $e->getMessage()]);
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
+
             return new BucketSectionData(['error' => $this->errors->message($e)]);
         }
     }
@@ -434,6 +438,7 @@ final readonly class BucketSettingsService
         } catch (DomainException $e) {
             throw $e;
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
             throw new DomainException(__('The storage rejected the change: :error', ['error' => $this->errors->message($e)]), previous: $e);
         }
     }

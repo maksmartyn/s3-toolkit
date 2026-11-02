@@ -31,6 +31,8 @@ final readonly class StorageConnectionTester
                     try {
                         $client->headBucket(['Bucket' => $bucket]);
                     } catch (Throwable $e) {
+                        report_if(config('app.debug'), $e);
+
                         return $this->failure(__('Bucket :bucket: :error', ['bucket' => $bucket, 'error' => $this->errors->message($e)]));
                     }
                 }
@@ -55,8 +57,12 @@ final readonly class StorageConnectionTester
                 'bucketCount' => count($names),
             ]);
         } catch (DomainException $e) {
+            report_if(config('app.debug'), $e);
+
             return $this->failure($e->getMessage());
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
+
             return $this->failure($this->errors->message($e));
         }
     }

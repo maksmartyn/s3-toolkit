@@ -105,6 +105,7 @@ final readonly class BucketDeletionRunner implements OperationRunner
 
             return false;
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
             Log::warning('Bucket deletion failed', ['operation' => $operationId, 'error' => $e->getMessage()]);
             $this->operations->fail($operationId, $this->errors->message($e));
 
@@ -129,6 +130,8 @@ final readonly class BucketDeletionRunner implements OperationRunner
                     throw $e;
                 }
 
+                report_if(config('app.debug'), $e);
+
                 // Версионирование отмечено, но хранилище его не поддерживает — удаляем как обычные объекты
                 $state['versions'] = false;
             }
@@ -146,6 +149,8 @@ final readonly class BucketDeletionRunner implements OperationRunner
             return $gateway->listUploadsPage($bucket, null, null)['items'];
         } catch (AwsException $e) {
             if ($e->getAwsErrorCode() === 'NotImplemented') {
+                report_if(config('app.debug'), $e);
+
                 return [];
             }
 
@@ -162,6 +167,8 @@ final readonly class BucketDeletionRunner implements OperationRunner
             if ($e->getAwsErrorCode() !== 'NoSuchBucket') {
                 throw $e;
             }
+
+            report_if(config('app.debug'), $e);
         }
     }
 }

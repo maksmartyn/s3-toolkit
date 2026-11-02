@@ -74,7 +74,8 @@ final readonly class ObjectUploadService
     {
         try {
             $this->gateways->forStorage($storageId)->abortUpload($bucket, $key, $uploadId);
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
             // уже отменена или завершена
         }
     }
@@ -106,6 +107,7 @@ final readonly class ObjectUploadService
         } catch (DomainException $e) {
             throw $e;
         } catch (Throwable $e) {
+            report_if(config('app.debug'), $e);
             throw new DomainException(__('Upload failed: :error', ['error' => $this->errors->message($e)]), previous: $e);
         }
     }
