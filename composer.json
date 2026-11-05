@@ -1,11 +1,18 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/vue-starter-kit",
+    "name": "maksmartyn/s3-toolkit",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Web-based toolkit for managing S3-compatible storage",
     "keywords": [
-        "laravel",
-        "framework"
+        "s3",
+        "bucket",
+        "toolkit"
+    ],
+    "authors": [
+        {
+            "name": "Maks Martynov",
+            "email": "maksmartyn@protonmail.com"
+        }
     ],
     "license": "MIT",
     "require": {
